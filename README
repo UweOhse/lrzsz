@@ -1,3 +1,35 @@
+NOTE:
+
+Do not use the repository until further notice.
+It contains work in progress and at least one change i am unhappy with.
+
+Use either http://ohse.de/uwe/testing/lrzsz-0.12.21rc.tar.gz (over 20
+years in rc state, so it's good enough), or 0.12.20 from 
+https://ohse.de/uwe/software/lrzsz.html (do not expect me to update 
+that old site ever again).
+
+********************
+
+Future plans:
+
+- remove all traces of K&R C
+
+- kill many #if(def) 
+
+- remove everything unused.
+-- tcp mode (not even *i* have a use for that anymore)
+-- timesync (needs root rights)
+-- gettext (no translations in 20 years, and the po dir is a mess)
+-- systype
+-- lrzszbug
+
+- rewrite the mess, maybe in go.
+
+- add the protocol debugger, if i find it again (it may have been lost 
+  in time).
+
+-----------------------------------------------------------------------
+
 lrzsz is a X/Y/ZModem package built from the public-domain version of
 Chuck Forsberg´s rzsz package. This package contains NO code from later
 releases of rzsz which would preclude it from being released under the
