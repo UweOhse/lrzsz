@@ -1,6 +1,5 @@
 noinst_LIBRARIES=libzmodem.a
-CFLAGS=@CFLAGS@
-AUTOMAKE_OPTIONS=ansi2knr
+AM_CFLAGS=@CFLAGS@
 
 EXTRA_DIST = alloca.c ansi2knr.1 ansi2knr.c \
 	getopt.c getopt1.c mkdir.c mktime.c \

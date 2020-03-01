@@ -55,13 +55,6 @@
 /* define to 1. we have a replacement function for it. */
 #undef HAVE_STRERROR
 
-/* define to 1 if you want strict ANSI prototypes. will remove some 
-   extern x(); declarations. */
-#undef STRICT_PROTOTYPES
-
-/* where the localedata hides */
-/* #undef LOCALEDIR */
-
 /* do your system libraries declare errno? */
 #undef HAVE_ERRNO_DECLARATION
 

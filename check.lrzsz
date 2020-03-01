@@ -279,7 +279,7 @@ if test "$mode" = all -o "$mode" = y ; then
 	echo "testing YMODEM"
 	mkdir $testdir/ymodem
 	failed=0
-	$SZ --ymodem -q $y_test_files <$testdir/pipe | \
+	$SZ --ymodem -q $y_test_files -vvvvv <$testdir/pipe | \
 		(cd $testdir/ymodem ; $RZ $QUIET --ymodem >>../pipe)
 	for i in $y_test_files ; do 
 		bn=`basename $i`

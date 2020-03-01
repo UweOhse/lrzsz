@@ -1,8 +1,9 @@
-SUBDIRS = lib intl src po man testsuite
-EXTRA_DIST = check.lrzsz COMPATABILITY README.cvs README.isdn4linux \
+SUBDIRS = lib src po man testsuite
+EXTRA_DIST = m4/ChangeLog  check.lrzsz COMPATABILITY README.cvs README.isdn4linux \
 	README.gettext rpmrc buildrpm systype.in fastcheck.sh README.tests \
 	beos-runpiped.c fastcheck.beos
 noinst_SCRIPTS=systype
+ACLOCAL_AMFLAGS=-I m4
 PR=@PACKAGE@-@VERSION@
 CLEAN_FILES=fastcheck.done
 

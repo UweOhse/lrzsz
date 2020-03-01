@@ -181,7 +181,7 @@ struct termios;
 # include <locale.h>
 #endif
 #if !HAVE_SETLOCALE
-# define setlocale(Category, Locale) /* empty */
+# define xxxsetlocale(Category, Locale) /* empty */
 #endif
 
 #if ENABLE_NLS
