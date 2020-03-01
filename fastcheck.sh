@@ -1,5 +1,9 @@
 #! /bin/sh
 
+if test "x$1" = x ; then
+	echo "usage: make fastcheck (yeah, this is supposed to run under make)"
+	exit 2
+fi
 srcdir="$1"
 if test $srcdir = . ; then
 	srcdir=`pwd`
