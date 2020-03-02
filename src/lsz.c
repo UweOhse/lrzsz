@@ -1978,7 +1978,7 @@ zsendfdata (struct zm_fileinfo *zi)
 		blklen = calc_blklen (total_sent);
 		total_sent += blklen + OVERHEAD;
 		if (Verbose > 2 && blklen != old)
-			vstringf (_("blklen now %d\n"), blklen);
+			vstringf (_("blklen now %lu\n"), (unsigned long)blklen);
 #ifdef HAVE_MMAP
 		if (mm_addr) {
 			if (zi->bytes_sent + blklen < mm_size)

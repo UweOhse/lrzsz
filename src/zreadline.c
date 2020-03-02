@@ -68,8 +68,8 @@ readline_internal(unsigned int timeout)
 		else if (n==0)
 			n=1;
 		if (Verbose > 5)
-			vstringf("Calling read: alarm=%d  Readnum=%d ",
-			  n, readline_readnum);
+			vstringf("Calling read: alarm=%u  Readnum=%lu ",
+			  n, (unsigned long) readline_readnum);
 		signal(SIGALRM, zreadline_alarm_handler); 
 #ifdef HAVE_SIGINTERRUPT
 		siginterrupt(SIGALRM,1);
@@ -77,8 +77,8 @@ readline_internal(unsigned int timeout)
 		alarm(n);
 	}
 	else if (Verbose > 5)
-		vstringf("Calling read: Readnum=%d ",
-		  readline_readnum);
+		vstringf("Calling read: Readnum=%lu ",
+		  (unsigned long)readline_readnum);
 
 	readline_ptr=readline_buffer;
 	readline_left=read(readline_fd, readline_ptr, readline_readnum);
