@@ -2292,7 +2292,7 @@ exec2(const char *s)
 	if (*s == '!')
 		++s;
 	io_mode(0,0);
-	execl("/bin/sh", "sh", "-c", s);
+	execl("/bin/sh", "sh", "-c", s, NULL);
 	zpfatal("execl");
 	exit(1);
 }
