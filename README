@@ -20,7 +20,6 @@ Future plans:
 -- tcp mode (not even *i* have a use for that anymore)
 -- timesync (needs root rights)
 -- gettext (no translations in 20 years, and the po dir is a mess)
--- systype
 -- lrzszbug
 
 - rewrite the mess, maybe in go.
@@ -60,12 +59,5 @@ Please read:
 - README.tests for information about how to do a self test
 - README.systems for a list of systems lrzsz has been compiled
   and passed a simple self test under.
-
-In case you want to report a successful build:
-	make success
-or
-	make fastcheck && \
-	sh systype | mail uwe-generic-counter@ohse.de
-"sh systype" alone shows what data this script sends.
 
 Uwe Ohse

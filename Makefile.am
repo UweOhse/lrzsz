@@ -1,8 +1,7 @@
 SUBDIRS = lib src po man testsuite
 EXTRA_DIST = m4/ChangeLog  check.lrzsz COMPATABILITY README.cvs README.isdn4linux \
-	README.gettext rpmrc buildrpm systype.in fastcheck.sh README.tests \
+	README.gettext rpmrc buildrpm fastcheck.sh README.tests \
 	beos-runpiped.c fastcheck.beos
-noinst_SCRIPTS=systype
 ACLOCAL_AMFLAGS=-I m4
 PR=@PACKAGE@-@VERSION@
 CLEAN_FILES=fastcheck.done
@@ -19,9 +18,6 @@ fastcheck-beos: beos-runpiped
 
 beos-runpiped: beos-runpiped.c
 	$(CC) -o $@ $<
-
-success: fastcheck
-	sh systype | mail uwe-generic-counter@ohse.de
 
 vcheck:
 	$(srcdir)/check.lrzsz $(srcdir) `pwd`

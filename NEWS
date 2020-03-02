@@ -17,10 +17,6 @@ Version 0.12.20 - December 1998, Uwe Ohse
 * lrz uses umask to make files unreadable which receiving
   them.
 
-* "sh systype | mail uwe-generic-counter@ohse.de"
-  sends a success report with a description of the
-  system type.
-
 * --enable-syslog is now default
 
 Version 0.12.19 - January 1998, Uwe Ohse
