@@ -31,10 +31,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-#ifndef HAVE_ERRNO_DECLARATION
-extern int errno;
-#endif
-
 #ifdef USE_SGTTY
 #  ifdef LLITOUT
 long Locmode;		/* Saved "local mode" for 4.x BSD "new driver" */

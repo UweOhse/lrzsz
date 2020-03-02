@@ -42,11 +42,6 @@
 #include "xstrtoul.h"
 #include "error.h"
 
-
-#ifndef HAVE_ERRNO_DECLARATION
-extern int errno;
-#endif
-
 #define MAX_BLOCK 8192
 
 /*
