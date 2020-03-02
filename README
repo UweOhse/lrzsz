@@ -27,6 +27,8 @@ Future plans:
 - add the protocol debugger, if i find it again (it may have been lost 
   in time).
 
+- switch from alarm() to select.
+
 -----------------------------------------------------------------------
 
 lrzsz is a X/Y/ZModem package built from the public-domain version of
