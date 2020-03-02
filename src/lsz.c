@@ -50,12 +50,6 @@ void *mm_addr=NULL;
 #include "xstrtoul.h"
 #include "error.h"
 
-#ifndef STRICT_PROTOTYPES
-extern time_t time();
-extern char *strerror();
-extern char *strstr();
-#endif
-
 #ifndef HAVE_ERRNO_DECLARATION
 extern int errno;
 #endif
