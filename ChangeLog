@@ -1,3 +1,10 @@
+2020-03-01  Uwe Ohse  <uwe@ohse.de>
+
+	* Updated to autoconf 2.69, automake 1.16, gettext-0.20.1, 
+	  libtool 2.4.6. Why are these still separate tools?
+	* fixed a self check issue, where ymodem did hang, by moving
+	  the siginterupt call after the call to signal().
+
 2020-03-01  gettextize  <bug-gnu-gettext@gnu.org>
 
 	* Makefile.am (EXTRA_DIST): Add m4/ChangeLog.
