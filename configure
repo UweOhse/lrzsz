@@ -13978,38 +13978,6 @@ $as_echo "#define TM_IN_SYS_TIME 1" >>confdefs.h
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for errno declaration" >&5
-$as_echo_n "checking for errno declaration... " >&6; }
-if ${lrzsz_cv_decl_errno+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <errno.h>
-int
-main ()
-{
-int i = errno; errno = 1;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  lrzsz_cv_decl_errno=yes
-else
-  lrzsz_cv_decl_errno=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $lrzsz_cv_decl_errno" >&5
-$as_echo "$lrzsz_cv_decl_errno" >&6; }
-if test $lrzsz_cv_decl_errno = yes; then
-  $as_echo "#define HAVE_ERRNO_DECLARATION 1" >>confdefs.h
-
-fi
-
-
 if test $cross_compiling = no ; then
 	if ${ac_cv_func_setvbuf_reversed+:} false; then :
   $as_echo_n "(cached) " >&6

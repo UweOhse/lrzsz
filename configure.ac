@@ -153,7 +153,6 @@ AC_HEADER_TIME
 UO_TYPE_SOCKLEN_T
 lrzsz_HEADER_SYS_SELECT
 AC_STRUCT_TM
-LRZSZ_ERRNO_DECL
 
 dnl Checks for library functions.
 if test $cross_compiling = no ; then
