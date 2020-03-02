@@ -5,7 +5,6 @@ AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
 LT_INIT
 
-
 dnl AC_C_CROSS is in AC_PROG_CC since 2.12
 AC_PREREQ(2.12)
 
@@ -99,9 +98,6 @@ if test "x$GCC" = xyes ; then
     fi
 fi
 AC_PROG_GCC_TRADITIONAL
-dnl AC_PROG_INSTALL  included in AM_INIT_AUTOMAKE
-dnl AC_PROG_MAKE_SET included in AM_INIT_AUTOMAKE
-dnl AC_PROG_RANLIB obsoleted by LT_INIT
 AC_ISC_POSIX
 AC_AIX
 AC_MINIX
@@ -109,17 +105,18 @@ AC_MINIX
 AC_C_CONST
 AC_C_INLINE
 
-if test `hostname` = tirka.ohse.de -a "$cross_compiling" = no ; then
+if test `hostname` = alpine.x9.ohse.de -a "$cross_compiling" = no ; then
     test $prefix = NONE && prefix=/usr
-	if test -z "$CFLAGS" ; then 
+	if test -z "$CFLAGS" -o "x$CFLAGS" = "x-g -O2" ; then 
 	    case "$CC" in 
 		*gcc*)
 			CFLAGS="-Wall -Wstrict-prototypes -Wmissing-prototypes"
 			# -Wnested_externs entfernt wegen dcgettext()
 			CFLAGS="$CFLAGS -Wpointer-arith -Wcast-qual -Wcast-align"
 			CFLAGS="$CFLAGS -Winline -Wwrite-strings -Wshadow -Wmissing-braces"
-			CFLAGS="$CFLAGS -Wcomments -fforce-mem -fforce-addr -O2 -m486 -pipe"
-			CFLAGS="$CFLAGS -malign-loops=2 -malign-jumps=2 -malign-functions=2 -g3"
+			CFLAGS="$CFLAGS -Wcomments -fforce-addr -O2 -pipe"
+			CFLAGS="$CFLAGS -falign-loops=2 -falign-jumps=2 -falign-functions=2 -g3"
+			# CFLAGS="-Werror"
 			;;
 		esac
 	fi
