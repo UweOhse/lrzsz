@@ -1869,7 +1869,6 @@ static int
 zsendfdata (struct zm_fileinfo *zi)
 {
 	static int c;
-	int newcnt;
 	static int junkcount;				/* Counts garbage chars received by TX */
 	static size_t last_txpos = 0;
 	static long last_bps = 0;
@@ -1966,7 +1965,6 @@ zsendfdata (struct zm_fileinfo *zi)
 #endif
 	}
 
-	newcnt = Rxbuflen;
 	Txwcnt = 0;
 	stohdr (zi->bytes_sent);
 	zsbhdr (ZDATA, Txhdr);
@@ -2003,16 +2001,6 @@ zsendfdata (struct zm_fileinfo *zi)
 			if (Verbose>3)
 				vstringf("e=ZCRCW/bytcnt == Lastsync == %ld", 
 					(unsigned long) Lastsync);
-#if 0
-		/* what is this good for? Rxbuflen/newcnt normally are short - so after
-		 * a few KB ZCRCW will be used? (newcnt is never incremented)
-		 */
-		} else if (Rxbuflen && (newcnt -= n) <= 0) {
-			e = ZCRCW;
-			if (Verbose>3)
-				vstringf("e=ZCRCW/Rxbuflen(newcnt=%ld,n=%ld)", 
-					(unsigned long) newcnt,(unsigned long) n);
-#endif
 		} else if (Txwindow && (Txwcnt += n) >= Txwspac) {
 			Txwcnt = 0;
 			e = ZCRCQ;
