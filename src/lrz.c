@@ -31,6 +31,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
+#include <time.h>
 
 #ifdef HAVE_UTIME_H
 #include <utime.h>
@@ -41,11 +42,6 @@
 #include "xstrtoul.h"
 #include "error.h"
 
-#ifndef STRICT_PROTOTYPES
-extern time_t time();
-extern char *strerror();
-extern char *strstr();
-#endif
 
 #ifndef HAVE_ERRNO_DECLARATION
 extern int errno;
