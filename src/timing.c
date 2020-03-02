@@ -75,15 +75,10 @@
 #  endif
 #endif /* HAVE_TIMES */
 
-#ifdef HAVE_GETTIMEOFDAY
-/* collides with Solaris 2.5 prototype? */
-/* int gettimeofday (struct timeval *tv, struct timezone *tz); */
-#endif
-
 double 
 timing (int reset, time_t *nowp)
 {
-  static double elaptime, starttime, stoptime;
+  static double starttime, stoptime;
   double yet;
 #define NEED_TIME
 #ifdef HAVE_GETTIMEOFDAY
@@ -99,61 +94,6 @@ timing (int reset, time_t *nowp)
   yet=tv.tv_sec + tv.tv_usec/1000000.0;
 #undef NEED_TIME
 #endif
-#ifdef HAVE_FTIME
-	static int fbad=0;
-
-	if (! fbad)
-	{
-		struct timeb stime;
-		static struct timeb slast;
-
-		(void) ftime (&stime);
-
-		/* On some systems, such as SCO 3.2.2, ftime can go backwards in
-		   time.  If we detect this, we switch to using time.  */
-		if (slast.time != 0
-			&& (stime.time < slast.time
-			|| (stime.time == slast.time && stime.millitm < slast.millitm)))
-			fbad = 1;
-		else
-		{
-			yet = stime.millitm / 1000.0  + stime.time;
-			slast = stime;
-		}
-	}
-	if (fbad)
-		yet=(double) time(NULL);
-#undef NEED_TIME
-#endif
-
-#ifdef HAVE_TIMES
-  struct tms s;
-  long i;
-  static int itick;
-
-  if (itick == 0)
-    {
-#if TIMES_TICK == 0
-#if HAVE_SYSCONF && HAVE_SC_CLK_TCK
-      itick = (int) sysconf (_SC_CLK_TCK);
-#else /* ! HAVE_SYSCONF || ! HAVE_SC_CLK_TCK */
-      const char *z;
-
-      z = getenv ("HZ");
-      if (z != NULL)
-        itick = (int) strtol (z, (char **) NULL, 10);
-
-      /* If we really couldn't get anything, just use 60.  */
-      if (itick == 0)
-        itick = 60;
-#endif /* ! HAVE_SYSCONF || ! HAVE_SC_CLK_TCK */
-#else /* TIMES_TICK != 0 */
-      itick = TIMES_TICK;
-#endif /* TIMES_TICK == 0 */
-    }
-  yet = ((double) times (&s)) / itick;
-#undef NEED_TIME
-#endif
 
 #ifdef NEED_TIME
 	yet=(double) time(NULL);
@@ -165,6 +105,7 @@ timing (int reset, time_t *nowp)
     return starttime;
   }
   else {
+    double elaptime;
     stoptime = yet;
     elaptime = stoptime - starttime;
     return elaptime;
@@ -176,11 +117,11 @@ timing (int reset, time_t *nowp)
 main()
 {
 	int i;
-	printf("timing %g\n",timing(1));
-	printf("timing %g\n",timing(0));
+	printf("timing %g\n",timing(1,NULL));
+	printf("timing %g\n",timing(0,NULL));
 	for(i=0;i<20;i++){
 	sleep(1);
-	printf("timing %g\n",timing(0));
+	printf("timing %g\n",timing(0,NULL));
 	}
 }
 #endif

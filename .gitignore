@@ -21,3 +21,8 @@ systype
 Specfile
 po/Makefile.in
 fastcheck.ok
+configure
+o
+out
+out2
+o2
