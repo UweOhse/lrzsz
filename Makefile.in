@@ -345,7 +345,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = lib src po man testsuite
+SUBDIRS = lib src po man
 EXTRA_DIST = m4/ChangeLog  check.lrzsz COMPATABILITY README.cvs README.isdn4linux \
 	README.gettext rpmrc buildrpm fastcheck.sh README.tests \
 	beos-runpiped.c fastcheck.beos

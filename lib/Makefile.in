@@ -131,10 +131,7 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = $(DEPDIR)/stpcpy.Po $(DEPDIR)/strdup.Po \
-	$(DEPDIR)/strerror.Po $(DEPDIR)/strpbrk.Po $(DEPDIR)/strstr.Po \
-	$(DEPDIR)/strtol.Po $(DEPDIR)/strtoul.Po \
-	$(DEPDIR)/vasprintf.Po ./$(DEPDIR)/alloca.Po \
+am__depfiles_remade = $(DEPDIR)/vasprintf.Po ./$(DEPDIR)/alloca.Po \
 	./$(DEPDIR)/error.Po ./$(DEPDIR)/long-options.Po \
 	./$(DEPDIR)/xstrtol.Po ./$(DEPDIR)/xstrtoul.Po
 am__mv = mv -f
@@ -188,8 +185,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp \
-	$(top_srcdir)/mkinstalldirs alloca.c stpcpy.c strdup.c \
-	strerror.c strpbrk.c strstr.c strtol.c strtoul.c vasprintf.c
+	$(top_srcdir)/mkinstalldirs alloca.c vasprintf.c
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
@@ -330,7 +326,6 @@ noinst_LIBRARIES = libzmodem.a
 AM_CFLAGS = @CFLAGS@
 EXTRA_DIST = alloca.c \
 	getopt.c getopt1.c \
-	strdup.c strerror.c strstr.c strpbrk.c strtol.c strtoul.c stpcpy.c \
 	vasprintf.c
 
 libzmodem_a_SOURCES = long-options.c xstrtol.c xstrtoul.c error.c 
@@ -385,13 +380,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/stpcpy.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strdup.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strerror.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strpbrk.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strstr.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strtol.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strtoul.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/vasprintf.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alloca.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/error.Po@am__quote@ # am--include-marker
@@ -557,14 +545,7 @@ clean-am: clean-generic clean-libtool clean-noinstLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
-		-rm -f $(DEPDIR)/stpcpy.Po
-	-rm -f $(DEPDIR)/strdup.Po
-	-rm -f $(DEPDIR)/strerror.Po
-	-rm -f $(DEPDIR)/strpbrk.Po
-	-rm -f $(DEPDIR)/strstr.Po
-	-rm -f $(DEPDIR)/strtol.Po
-	-rm -f $(DEPDIR)/strtoul.Po
-	-rm -f $(DEPDIR)/vasprintf.Po
+		-rm -f $(DEPDIR)/vasprintf.Po
 	-rm -f ./$(DEPDIR)/alloca.Po
 	-rm -f ./$(DEPDIR)/error.Po
 	-rm -f ./$(DEPDIR)/long-options.Po
@@ -615,14 +596,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f $(DEPDIR)/stpcpy.Po
-	-rm -f $(DEPDIR)/strdup.Po
-	-rm -f $(DEPDIR)/strerror.Po
-	-rm -f $(DEPDIR)/strpbrk.Po
-	-rm -f $(DEPDIR)/strstr.Po
-	-rm -f $(DEPDIR)/strtol.Po
-	-rm -f $(DEPDIR)/strtoul.Po
-	-rm -f $(DEPDIR)/vasprintf.Po
+		-rm -f $(DEPDIR)/vasprintf.Po
 	-rm -f ./$(DEPDIR)/alloca.Po
 	-rm -f ./$(DEPDIR)/error.Po
 	-rm -f ./$(DEPDIR)/long-options.Po

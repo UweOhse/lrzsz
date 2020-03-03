@@ -3,7 +3,6 @@ AM_CFLAGS=@CFLAGS@
 
 EXTRA_DIST = alloca.c \
 	getopt.c getopt1.c \
-	strdup.c strerror.c strstr.c strpbrk.c strtol.c strtoul.c stpcpy.c \
 	vasprintf.c
 
 libzmodem_a_SOURCES = long-options.c xstrtol.c xstrtoul.c error.c 

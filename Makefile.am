@@ -1,4 +1,4 @@
-SUBDIRS = lib src po man testsuite
+SUBDIRS = lib src po man
 EXTRA_DIST = m4/ChangeLog  check.lrzsz COMPATABILITY README.cvs README.isdn4linux \
 	README.gettext rpmrc buildrpm fastcheck.sh README.tests \
 	beos-runpiped.c fastcheck.beos
