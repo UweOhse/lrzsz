@@ -77,9 +77,6 @@ enum zm_type_enum protocol;
 int	under_rsh=FALSE;
 int zmodem_requested=FALSE;
 
-#ifdef SEGMENTS
-static int chinseg = 0;	/* Number of characters received in this data seg */
-#endif
 static char *secbuf;
 
 #ifdef ENABLE_TIMESYNC
@@ -453,11 +450,7 @@ main(int argc, char *argv[])
 		_("this program was never intended to be used setuid\n"));
 	}
 
-#ifdef SEGMENTS
-	secbuf=malloc(1+(SEGMENTS+1)*MAX_BLOCK);
-#else
 	secbuf=malloc(MAX_BLOCK+1);
-#endif
 	if (!secbuf) error(1,0,_("out of memory"));
 
 	/* initialize zsendline tab */
@@ -1614,11 +1607,7 @@ tryz(void)
 	for (n=zmodem_requested?15:5; 
 		 (--n + zrqinits_received) >=0 && zrqinits_received<10; ) {
 		/* Set buffer length (0) and capability flags */
-#ifdef SEGMENTS
-		stohdr(SEGMENTS*MAX_BLOCK);
-#else
 		stohdr(0L);
-#endif
 #ifdef CANBREAK
 		Txhdr[ZF0] = CANFC32|CANFDX|CANOVIO|CANBRK;
 #else
@@ -1844,9 +1833,6 @@ rzfile(struct zm_fileinfo *zi)
 	}
 
 	for (;;) {
-#ifdef SEGMENTS
-		chinseg = 0;
-#endif
 		stohdr(zi->bytes_received);
 		zshhdr(ZRPOS, Txhdr);
 		goto skip_oosb;
@@ -1887,10 +1873,6 @@ nxthdr:
 			return ERROR;
 		case ZNAK:
 		case TIMEOUT:
-#ifdef SEGMENTS
-			putsec(secbuf, chinseg);
-			chinseg = 0;
-#endif
 			if ( --n < 0) {
 				DO_SYSLOG_FNAME((LOG_INFO, "%s/%s: error: zgethdr returned %s",shortname,
 					   protname(),c == ZNAK ? "ZNAK" : "TIMEOUT"));
@@ -1901,10 +1883,6 @@ nxthdr:
 			zrdata(secbuf, MAX_BLOCK,&bytes_in_block);
 			continue;
 		case ZEOF:
-#ifdef SEGMENTS
-			putsec(secbuf, chinseg);
-			chinseg = 0;
-#endif
 			if (rclhdr(Rxhdr) != (long) zi->bytes_received) {
 				/*
 				 * Ignore eof if it's at wrong place - force
@@ -1923,10 +1901,6 @@ nxthdr:
 			vfile("rzfile: normal EOF");
 			return c;
 		case ERROR:	/* Too much garbage in header search error */
-#ifdef SEGMENTS
-			putsec(secbuf, chinseg);
-			chinseg = 0;
-#endif
 			if ( --n < 0) {
 				DO_SYSLOG_FNAME((LOG_INFO, "%s/%s: error: zgethdr returned %d",
 						   shortname, protname(),c));
@@ -1936,10 +1910,6 @@ nxthdr:
 			zmputs(Attn);
 			continue;
 		case ZSKIP:
-#ifdef SEGMENTS
-			putsec(secbuf, chinseg);
-			chinseg = 0;
-#endif
 			closeit(zi);
 			DO_SYSLOG_FNAME((LOG_INFO, "%s/%s: error: sender skipped",
 					   shortname, protname()));
@@ -1987,10 +1957,6 @@ nxthdr:
 							free(neu);
 					}
 				}
-#endif
-#ifdef SEGMENTS
-				putsec(secbuf, chinseg);
-				chinseg = 0;
 #endif
 				zmputs(Attn);  continue;
 			}
@@ -2045,30 +2011,14 @@ moredata:
 				}
 			} else if (Verbose)
 				not_printed++;
-#ifdef SEGMENTS
-			if (chinseg >= (MAX_BLOCK * SEGMENTS)) {
-				putsec(secbuf, chinseg);
-				chinseg = 0;
-			}
-			switch (c = zrdata(secbuf+chinseg, MAX_BLOCK,&bytes_in_block))
-#else
 			switch (c = zrdata(secbuf, MAX_BLOCK,&bytes_in_block))
-#endif
 			{
 			case ZCAN:
-#ifdef SEGMENTS
-				putsec(secbuf, chinseg);
-				chinseg = 0;
-#endif
 				vfile("rzfile: zrdata returned %d", c);
 				DO_SYSLOG_FNAME((LOG_INFO, "%s/%s: zrdata returned ZCAN",
 						   shortname, protname()));
 				return ERROR;
 			case ERROR:	/* CRC error */
-#ifdef SEGMENTS
-				putsec(secbuf, chinseg);
-				chinseg = 0;
-#endif
 				if ( --n < 0) {
 					vfile("rzfile: zgethdr returned %d", c);
 					DO_SYSLOG_FNAME((LOG_INFO, "%s/%s: zrdata returned ERROR",
@@ -2078,10 +2028,6 @@ moredata:
 				zmputs(Attn);
 				continue;
 			case TIMEOUT:
-#ifdef SEGMENTS
-				putsec(secbuf, chinseg);
-				chinseg = 0;
-#endif
 				if ( --n < 0) {
 					DO_SYSLOG_FNAME((LOG_INFO, "%s/%s: zrdata returned TIMEOUT",
 							   shortname, protname()));
@@ -2091,44 +2037,26 @@ moredata:
 				continue;
 			case GOTCRCW:
 				n = 20;
-#ifdef SEGMENTS
-				chinseg += bytes_in_block;
-				putsec(zi, secbuf, chinseg);
-				chinseg = 0;
-#else
 				putsec(zi, secbuf, bytes_in_block);
-#endif
 				zi->bytes_received += bytes_in_block;
 				stohdr(zi->bytes_received);
 				zshhdr(ZACK | 0x80, Txhdr);
 				goto nxthdr;
 			case GOTCRCQ:
 				n = 20;
-#ifdef SEGMENTS
-				chinseg += bytes_in_block;
-#else
 				putsec(zi, secbuf, bytes_in_block);
-#endif
 				zi->bytes_received += bytes_in_block;
 				stohdr(zi->bytes_received);
 				zshhdr(ZACK, Txhdr);
 				goto moredata;
 			case GOTCRCG:
 				n = 20;
-#ifdef SEGMENTS
-				chinseg += bytes_in_block;
-#else
 				putsec(zi, secbuf, bytes_in_block);
-#endif
 				zi->bytes_received += bytes_in_block;
 				goto moredata;
 			case GOTCRCE:
 				n = 20;
-#ifdef SEGMENTS
-				chinseg += bytes_in_block;
-#else
 				putsec(zi, secbuf, bytes_in_block);
-#endif
 				zi->bytes_received += bytes_in_block;
 				goto nxthdr;
 			}
