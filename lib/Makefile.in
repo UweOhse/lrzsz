@@ -133,11 +133,11 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = $(DEPDIR)/mkdir.Po $(DEPDIR)/mktime.Po \
 	$(DEPDIR)/stpcpy.Po $(DEPDIR)/strdup.Po $(DEPDIR)/strerror.Po \
-	$(DEPDIR)/strftime.Po $(DEPDIR)/strpbrk.Po $(DEPDIR)/strstr.Po \
-	$(DEPDIR)/strtol.Po $(DEPDIR)/strtoul.Po \
-	$(DEPDIR)/vasprintf.Po ./$(DEPDIR)/alloca.Po \
-	./$(DEPDIR)/error.Po ./$(DEPDIR)/long-options.Po \
-	./$(DEPDIR)/xstrtol.Po ./$(DEPDIR)/xstrtoul.Po
+	$(DEPDIR)/strpbrk.Po $(DEPDIR)/strstr.Po $(DEPDIR)/strtol.Po \
+	$(DEPDIR)/strtoul.Po $(DEPDIR)/vasprintf.Po \
+	./$(DEPDIR)/alloca.Po ./$(DEPDIR)/error.Po \
+	./$(DEPDIR)/long-options.Po ./$(DEPDIR)/xstrtol.Po \
+	./$(DEPDIR)/xstrtoul.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -190,8 +190,8 @@ ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp \
 	$(top_srcdir)/mkinstalldirs alloca.c mkdir.c mktime.c stpcpy.c \
-	strdup.c strerror.c strftime.c strpbrk.c strstr.c strtol.c \
-	strtoul.c vasprintf.c
+	strdup.c strerror.c strpbrk.c strstr.c strtol.c strtoul.c \
+	vasprintf.c
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
@@ -392,7 +392,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/stpcpy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strdup.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strerror.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strftime.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strpbrk.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strstr.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strtol.Po@am__quote@ # am--include-marker
@@ -567,7 +566,6 @@ distclean: distclean-am
 	-rm -f $(DEPDIR)/stpcpy.Po
 	-rm -f $(DEPDIR)/strdup.Po
 	-rm -f $(DEPDIR)/strerror.Po
-	-rm -f $(DEPDIR)/strftime.Po
 	-rm -f $(DEPDIR)/strpbrk.Po
 	-rm -f $(DEPDIR)/strstr.Po
 	-rm -f $(DEPDIR)/strtol.Po
@@ -628,7 +626,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f $(DEPDIR)/stpcpy.Po
 	-rm -f $(DEPDIR)/strdup.Po
 	-rm -f $(DEPDIR)/strerror.Po
-	-rm -f $(DEPDIR)/strftime.Po
 	-rm -f $(DEPDIR)/strpbrk.Po
 	-rm -f $(DEPDIR)/strstr.Po
 	-rm -f $(DEPDIR)/strtol.Po
