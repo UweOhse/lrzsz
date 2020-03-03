@@ -212,7 +212,7 @@ CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
 #DEFS = -DLOCALEDIR=\"$(localedir)\" -DOS=\"@host_os@\" -DCPU=\"@host_cpu@\"
-DEFS = -DNFGVMIN @DEFS@ -DLOCALEDIR=\"$(localedir)\"
+DEFS = @DEFS@ -DLOCALEDIR=\"$(localedir)\"
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
 DSYMUTIL = @DSYMUTIL@
