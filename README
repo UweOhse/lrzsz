@@ -29,6 +29,12 @@ Future plans:
 
 - switch from alarm() to select.
 
+- cleanup the test suite
+
+- do something about the getopt mess (gnulib wants 7 files...)
+
+- is the usage of vasprintf really needed?
+
 -----------------------------------------------------------------------
 
 lrzsz is a X/Y/ZModem package built from the public-domain version of
