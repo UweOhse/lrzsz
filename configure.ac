@@ -165,7 +165,7 @@ AC_EGREP_HEADER([struct.*utimbuf], utime.h, AC_DEFINE(HAVE_STRUCT_UTIMBUF))
 AC_CHECK_FUNCS(gettimeofday settimeofday)
 AC_CHECK_FUNCS(strchr memcpy select vprintf)
 AC_CHECK_FUNCS(rdchk utime syslog siginterrupt)
-AC_REPLACE_FUNCS(mkdir mktime strerror strstr strdup strtoul strtol strpbrk)
+AC_REPLACE_FUNCS(mktime strerror strstr strdup strtoul strtol strpbrk)
 AC_REPLACE_FUNCS(stpcpy vasprintf)
 
 AC_REPLACE_GNU_GETOPT

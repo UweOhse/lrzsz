@@ -2,7 +2,7 @@ noinst_LIBRARIES=libzmodem.a
 AM_CFLAGS=@CFLAGS@
 
 EXTRA_DIST = alloca.c \
-	getopt.c getopt1.c mkdir.c mktime.c \
+	getopt.c getopt1.c mktime.c \
 	strdup.c strerror.c strstr.c strpbrk.c strtol.c strtoul.c stpcpy.c \
 	vasprintf.c
 
