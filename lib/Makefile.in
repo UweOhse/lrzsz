@@ -131,9 +131,9 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = $(DEPDIR)/mktime.Po $(DEPDIR)/stpcpy.Po \
-	$(DEPDIR)/strdup.Po $(DEPDIR)/strerror.Po $(DEPDIR)/strpbrk.Po \
-	$(DEPDIR)/strstr.Po $(DEPDIR)/strtol.Po $(DEPDIR)/strtoul.Po \
+am__depfiles_remade = $(DEPDIR)/stpcpy.Po $(DEPDIR)/strdup.Po \
+	$(DEPDIR)/strerror.Po $(DEPDIR)/strpbrk.Po $(DEPDIR)/strstr.Po \
+	$(DEPDIR)/strtol.Po $(DEPDIR)/strtoul.Po \
 	$(DEPDIR)/vasprintf.Po ./$(DEPDIR)/alloca.Po \
 	./$(DEPDIR)/error.Po ./$(DEPDIR)/long-options.Po \
 	./$(DEPDIR)/xstrtol.Po ./$(DEPDIR)/xstrtoul.Po
@@ -188,9 +188,8 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp \
-	$(top_srcdir)/mkinstalldirs alloca.c mktime.c stpcpy.c \
-	strdup.c strerror.c strpbrk.c strstr.c strtol.c strtoul.c \
-	vasprintf.c
+	$(top_srcdir)/mkinstalldirs alloca.c stpcpy.c strdup.c \
+	strerror.c strpbrk.c strstr.c strtol.c strtoul.c vasprintf.c
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
@@ -330,7 +329,7 @@ top_srcdir = @top_srcdir@
 noinst_LIBRARIES = libzmodem.a
 AM_CFLAGS = @CFLAGS@
 EXTRA_DIST = alloca.c \
-	getopt.c getopt1.c mktime.c \
+	getopt.c getopt1.c \
 	strdup.c strerror.c strstr.c strpbrk.c strtol.c strtoul.c stpcpy.c \
 	vasprintf.c
 
@@ -386,7 +385,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/mktime.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/stpcpy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strdup.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strerror.Po@am__quote@ # am--include-marker
@@ -559,8 +557,7 @@ clean-am: clean-generic clean-libtool clean-noinstLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
-		-rm -f $(DEPDIR)/mktime.Po
-	-rm -f $(DEPDIR)/stpcpy.Po
+		-rm -f $(DEPDIR)/stpcpy.Po
 	-rm -f $(DEPDIR)/strdup.Po
 	-rm -f $(DEPDIR)/strerror.Po
 	-rm -f $(DEPDIR)/strpbrk.Po
@@ -618,8 +615,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f $(DEPDIR)/mktime.Po
-	-rm -f $(DEPDIR)/stpcpy.Po
+		-rm -f $(DEPDIR)/stpcpy.Po
 	-rm -f $(DEPDIR)/strdup.Po
 	-rm -f $(DEPDIR)/strerror.Po
 	-rm -f $(DEPDIR)/strpbrk.Po
