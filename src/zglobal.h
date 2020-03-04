@@ -242,61 +242,6 @@ extern int enable_syslog;
 # define PATH_MAX _POSIX_PATH_MAX
 #endif
 
-#ifdef __GNUC__
-
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 5)
-# define LRZSZ_ATTRIB_SECTION(x) __attribute__((section(#x)))
-#endif
-
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
-# define LRZSZ_ATTRIB_CONST  __attribute__((__const__))
-#endif
-
-    /* gcc.info sagt, noreturn wäre ab 2.5 verfügbar. HPUX-gcc 2.5.8
-     * kann es noch nicht - what's this?
-     */
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 5)
-# define LRZSZ_ATTRIB_NORET  __attribute__((__noreturn__))
-#endif
-
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 5)
-# define LRZSZ_ATTRIB_PRINTF(formatnr,firstargnr)  \
-    __attribute__((__format__ (printf,formatnr,firstargnr)))
-#endif
-
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 6)
-#define LRZSZ_ATTRIB_UNUSED __attribute__((__unused__))
-#endif
-
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
-# define LRZSZ_ATTRIB_REGPARM(n)  \
-    __attribute__((__regparm__ (n)))
-#endif
-#endif /* __GNUC__ */
-#ifndef LRZSZ_ATTRIB_REGPARM
-#define LRZSZ_ATTRIB_REGPARM(n)
-#endif
-#ifndef LRZSZ_ATTRIB_UNUSED
-#define LRZSZ_ATTRIB_UNUSED
-#endif
-#ifndef LRZSZ_ATTRIB_NORET
-#define LRZSZ_ATTRIB_NORET
-#endif
-#ifndef LRZSZ_ATTRIB_CONST
-#define LRZSZ_ATTRIB_CONST
-#endif
-#ifndef LRZSZ_ATTRIB_PRINTF
-#define LRZSZ_ATTRIB_PRINTF(x,y)
-#endif
-#ifndef LRZSZ_ATTRIB_SECTION
-#define LRZSZ_ATTRIB_SECTION(n)
-#endif
-#undef LRZSZ_ATTRIB_SECTION
-#define LRZSZ_ATTRIB_SECTION(x)
-#undef LRZSZ_ATTRIB_REGPARM
-#define LRZSZ_ATTRIB_REGPARM(x)
-
-
 #define OK 0
 #define FALSE 0
 #define TRUE 1
@@ -367,7 +312,7 @@ extern int readline_left; /* number of buffered chars left to read */
 int readline_internal __P ((unsigned int timeout));
 void readline_purge __P ((void));
 void readline_setup __P ((int fd, size_t readnum, 
-	size_t buffer_size)) LRZSZ_ATTRIB_SECTION(lrzsz_rare);
+	size_t buffer_size));
 
 
 /* rbsb.c */
@@ -397,9 +342,9 @@ void vstringf __P ((const char *format, ...));
 	vstringf format_args ; } while(0)
 
 /* rbsb.c */
-int from_cu __P ((void)) LRZSZ_ATTRIB_SECTION(lrzsz_rare);
+int from_cu __P ((void));
 int rdchk __P ((int fd));
-int io_mode __P ((int fd, int n)) LRZSZ_ATTRIB_SECTION(lrzsz_rare);
+int io_mode __P ((int fd, int n));
 void sendbrk __P ((int fd));
 #define flushmo() fflush(stdout)
 void purgeline __P ((int fd));
@@ -432,22 +377,22 @@ extern int Znulls;     /* Number of nulls to send at beginning of ZDATA hdr */
 extern char Attn[ZATTNLEN+1];  /* Attention string rx sends to tx on err */
 
 extern void zsendline __P ((int c));
-extern void zsendline_init __P ((void)) LRZSZ_ATTRIB_SECTION(lrzsz_rare);
+extern void zsendline_init __P ((void));
 void zsbhdr __P ((int type, char *hdr));
 void zshhdr __P ((int type, char *hdr));
 void zsdata __P ((const char *buf, size_t length, int frameend));
 void zsda32 __P ((const char *buf, size_t length, int frameend));
 int zrdata __P ((char *buf, int length, size_t *received));
 int zgethdr __P ((char *hdr, int eflag, size_t *));
-void stohdr __P ((size_t pos)) LRZSZ_ATTRIB_REGPARM(1);
-long rclhdr __P ((char *hdr)) LRZSZ_ATTRIB_REGPARM(1);
+void stohdr __P ((size_t pos));
+long rclhdr __P ((char *hdr));
 
-int tcp_server __P ((char *buf)) LRZSZ_ATTRIB_SECTION(lrzsz_rare);
-int tcp_connect __P ((char *buf)) LRZSZ_ATTRIB_SECTION(lrzsz_rare);
-int tcp_accept __P ((int d)) LRZSZ_ATTRIB_SECTION(lrzsz_rare);
+int tcp_server __P ((char *buf));
+int tcp_connect __P ((char *buf));
+int tcp_accept __P ((int d));
 
 
-const char * protname __P ((void)) LRZSZ_ATTRIB_SECTION(lrzsz_rare);
+const char * protname __P ((void));
 void lsyslog __P ((int, const char *,...));
 
 

@@ -92,7 +92,7 @@ static const char *frametypes[] = {
 /* static char *badcrc = "Bad CRC"; */
 static inline int noxrd7 __P ((void));
 static inline int zdlread __P ((void));
-static int zdlread2 __P ((int)) LRZSZ_ATTRIB_REGPARM(1);
+static int zdlread2 __P ((int));
 static inline int zgeth1 __P ((void));
 static void zputhex __P ((int c, char *pos));
 static inline int zgethex __P ((void));
@@ -513,7 +513,6 @@ count_blk(int size)
 	blocksizes[i].count++;
 }
 
-static void printout_blocksizes(void) __attribute__((__destructor__));
 static void 
 printout_blocksizes(void) 
 {
