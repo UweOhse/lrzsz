@@ -34,10 +34,6 @@
 #include <errno.h>
 #include <getopt.h>
 
-#ifndef R_OK
-#  define R_OK 4
-#endif
-
 #if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MMAP)
 #  include <sys/mman.h>
 size_t mm_size;
