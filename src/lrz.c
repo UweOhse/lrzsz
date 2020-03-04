@@ -83,9 +83,6 @@ static char *secbuf;
 static int timesync_flag=0;
 static int in_timesync=0;
 #endif
-int tcp_socket=-1;
-int tcp_flag=0;
-char *tcp_server_address=NULL;
 
 #if defined(F_GETFD) && defined(F_SETFD) && defined(O_SYNC)
 static int o_sync = 0;
@@ -212,8 +209,6 @@ static struct option const long_options[] =
 	{"delay-startup", required_argument, NULL, 4},
 	{"o-sync", no_argument, NULL, 5},
 	{"o_sync", no_argument, NULL, 5},
-	{"tcp-server", no_argument, NULL, 6},
-	{"tcp-client", required_argument, NULL, 7},
 	{NULL,0,NULL,0}
 };
 
@@ -430,15 +425,6 @@ main(int argc, char *argv[])
 			error(0,0, _("O_SYNC not supported by the kernel"));
 #endif
 			break;
-		case 6:
-			tcp_flag=2;
-			break;
-		case 7:
-			tcp_flag=3;
-			tcp_server_address=(char *)strdup(optarg);
-			if (!tcp_server_address)
-				error(1,0,_("out of memory"));
-			break;
 		default:
 			usage(2,NULL);
 		}
@@ -477,51 +463,6 @@ main(int argc, char *argv[])
 	}
 
 	vfile("%s %s\n", program_name, VERSION);
-
-	if (tcp_flag==2) {
-		char buf[256];
-#ifdef MAXHOSTNAMELEN
-		char hn[MAXHOSTNAMELEN];
-#else
-		char hn[256];
-#endif
-		char *p,*q;
-		int d;
-
-		/* tell receiver to receive via tcp */
-		d=tcp_server(buf);
-		p=strchr(buf+1,'<');
-		p++;
-		q=strchr(p,'>');
-		*q=0;
-		if (gethostname(hn,sizeof(hn))==-1) {
-			error(1,0, _("hostname too long\n"));
-		}
-		fprintf(stdout,"connect with lrz --tcp-client \"%s:%s\"\n",hn,p);
-		fflush(stdout);
-		/* ok, now that this file is sent we can switch to tcp */
-
-		tcp_socket=tcp_accept(d);
-		dup2(tcp_socket,0);
-		dup2(tcp_socket,1);
-	}
-	if (tcp_flag==3) {
-		char buf[256];
-		char *p;
-		p=strchr(tcp_server_address,':');
-		if (!p)
-			error(1,0, _("illegal server address\n"));
-		*p++=0;
-		sprintf(buf,"[%s] <%s>\n",tcp_server_address,p);
-
-		fprintf(stdout,"connecting to %s\n",buf);
-		fflush(stdout);
-
-		/* we need to switch to tcp mode */
-		tcp_socket=tcp_connect(buf);
-		dup2(tcp_socket,0);
-		dup2(tcp_socket,1);
-	}
 
 	io_mode(0,1);
 	readline_setup(0, MAX_BLOCK, MAX_BLOCK*2);
@@ -604,8 +545,6 @@ usage(int exitcode, const char *what)
 "  -S, --timesync              request remote time (twice: set local time)\n"
 "      --syslog[=off]          turn syslog on or off, if possible\n"
 "  -t, --timeout N             set timeout to N tenths of a second\n"
-"      --tcp-server            open socket, wait for connection (Z)\n"
-"      --tcp-client ADDR:PORT  open socket, connect to ... (Z)\n"
 "  -u, --keep-uppercase        keep upper case filenames\n"
 "  -U, --unrestrict            disable restricted mode (if allowed to)\n"
 "  -v, --verbose               be verbose, provide debugging information\n"

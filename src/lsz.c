@@ -176,9 +176,6 @@ size_t max_blklen=1024;
 size_t start_blklen=0;
 int zmodem_requested;
 time_t stop_time=0;
-char *tcp_server_address=0;
-int tcp_socket=-1;
-int tcp_flag=0;
 
 int error_count;
 #define OVERHEAD 18
@@ -283,8 +280,6 @@ static struct option const long_options[] =
   {"overwrite-or-skip", no_argument, NULL, 'Y'},
 
   {"delay-startup", required_argument, NULL, 4},
-  {"tcp-server", no_argument, NULL, 6},
-  {"tcp-client", required_argument, NULL, 7},
   {"no-unixmode", no_argument, NULL, 8},
   {NULL, 0, NULL, 0}
 };
@@ -556,16 +551,6 @@ main(int argc, char **argv)
 			if (s_err != LONGINT_OK)
 				STRTOL_FATAL_ERROR (optarg, _("startup delay"), s_err);
 			break;
-		case 6:
-			tcp_flag=2;
-			break;
-		case 7:
-			tcp_flag=3;
-			tcp_server_address=(char *)strdup(optarg);
-			if (!tcp_server_address) {
-				error(1,0,_("out of memory"));
-			}
-			break;
 		case 8: no_unixmode=1; break;
 		default:
 			usage (2,NULL);
@@ -621,52 +606,6 @@ main(int argc, char **argv)
 			Verbose = 2;
 	}
 	vfile("%s %s\n", program_name, VERSION);
-
-	if (tcp_flag==2) {
-		char buf[256];
-#ifdef MAXHOSTNAMELEN
-		char hn[MAXHOSTNAMELEN];
-#else
-		char hn[256];
-#endif
-		char *p,*q;
-		int d;
-
-		/* tell receiver to receive via tcp */
-		d=tcp_server(buf);
-		p=strchr(buf+1,'<');
-		p++;
-		q=strchr(p,'>');
-		*q=0;
-		if (gethostname(hn,sizeof(hn))==-1) {
-			error(1,0, _("hostname too long\n"));
-		}
-		fprintf(stdout,"connect with lrz --tcp-client \"%s:%s\"\n",hn,p);
-		fflush(stdout);
-		/* ok, now that this file is sent we can switch to tcp */
-
-		tcp_socket=tcp_accept(d);
-		dup2(tcp_socket,0);
-		dup2(tcp_socket,1);
-	}
-	if (tcp_flag==3) {
-		char buf[256];
-		char *p;
-		p=strchr(tcp_server_address,':');
-		if (!p)
-			error(1,0, _("illegal server address\n"));
-		*p++=0;
-		sprintf(buf,"[%s] <%s>\n",tcp_server_address,p);
-
-		fprintf(stdout,"connecting to %s\n",buf);
-		fflush(stdout);
-
-		/* we need to switch to tcp mode */
-		tcp_socket=tcp_connect(buf);
-		dup2(tcp_socket,0);
-		dup2(tcp_socket,1);
-	}
-
 
 	{
 		/* we write max_blocklen (data) + 18 (ZModem protocol overhead)
@@ -1538,8 +1477,6 @@ usage(int exitcode, const char *what)
 "  -R, --restricted            restricted, more secure mode\n"
 "  -q, --quiet                 quiet (no progress reports)\n"
 "  -s, --stop-at {HH:MM|+N}    stop transmission at HH:MM or in N seconds\n"
-"      --tcp-server            open socket, wait for connection (Z)\n"
-"      --tcp-client ADDR:PORT  open socket, connect to ... (Z)\n"
 "  -u, --unlink                unlink file after transmission\n"
 "  -U, --unrestrict            turn off restricted mode (if allowed to)\n"
 "  -v, --verbose               be verbose, provide debugging information\n"

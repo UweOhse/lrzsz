@@ -379,11 +379,6 @@ int zgethdr (char *hdr, int eflag, size_t *);
 void stohdr (size_t pos);
 long rclhdr (char *hdr);
 
-int tcp_server (char *buf);
-int tcp_connect (char *buf);
-int tcp_accept (int d);
-
-
 const char * protname (void);
 void lsyslog (int, const char *,...);
 

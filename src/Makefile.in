@@ -103,7 +103,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(noinst_HEADERS) \
 	$(am__DIST_COMMON)
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES = lrzszbug
 CONFIG_CLEAN_VPATH_FILES =
@@ -111,8 +111,8 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_lrz_OBJECTS = lrz.$(OBJEXT) timing.$(OBJEXT) zperr.$(OBJEXT) \
 	zreadline.$(OBJEXT) crctab.$(OBJEXT) rbsb.$(OBJEXT) \
-	zm.$(OBJEXT) protname.$(OBJEXT) tcp.$(OBJEXT) \
-	lsyslog.$(OBJEXT) canit.$(OBJEXT)
+	zm.$(OBJEXT) protname.$(OBJEXT) lsyslog.$(OBJEXT) \
+	canit.$(OBJEXT)
 lrz_OBJECTS = $(am_lrz_OBJECTS)
 lrz_LDADD = $(LDADD)
 lrz_DEPENDENCIES = ../lib/libzmodem.a
@@ -122,8 +122,8 @@ am__v_lt_0 = --silent
 am__v_lt_1 = 
 am_lsz_OBJECTS = lsz.$(OBJEXT) timing.$(OBJEXT) zperr.$(OBJEXT) \
 	zreadline.$(OBJEXT) crctab.$(OBJEXT) rbsb.$(OBJEXT) \
-	zm.$(OBJEXT) protname.$(OBJEXT) tcp.$(OBJEXT) \
-	lsyslog.$(OBJEXT) canit.$(OBJEXT)
+	zm.$(OBJEXT) protname.$(OBJEXT) lsyslog.$(OBJEXT) \
+	canit.$(OBJEXT)
 lsz_OBJECTS = $(am_lsz_OBJECTS)
 lsz_LDADD = $(LDADD)
 lsz_DEPENDENCIES = ../lib/libzmodem.a
@@ -140,11 +140,11 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 = 
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/canit.Po ./$(DEPDIR)/crctab.Po \
 	./$(DEPDIR)/lrz.Po ./$(DEPDIR)/lsyslog.Po ./$(DEPDIR)/lsz.Po \
-	./$(DEPDIR)/protname.Po ./$(DEPDIR)/rbsb.Po ./$(DEPDIR)/tcp.Po \
+	./$(DEPDIR)/protname.Po ./$(DEPDIR)/rbsb.Po \
 	./$(DEPDIR)/timing.Po ./$(DEPDIR)/zm.Po ./$(DEPDIR)/zperr.Po \
 	./$(DEPDIR)/zreadline.Po
 am__mv = mv -f
@@ -194,7 +194,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/lrzszbug.in \
-	$(top_srcdir)/depcomp $(top_srcdir)/mkinstalldirs
+	$(top_srcdir)/build-aux/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
@@ -332,8 +332,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-lrz_SOURCES = lrz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c tcp.c lsyslog.c canit.c
-lsz_SOURCES = lsz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c tcp.c lsyslog.c canit.c
+lrz_SOURCES = lrz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c
+lsz_SOURCES = lsz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c
 noinst_HEADERS = timing.h zglobal.h zmodem.h
 AM_CFLAGS = @CFLAGS@
 DISTCLEAN_FILES = lrzszbug
@@ -446,7 +446,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lsz.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/protname.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rbsb.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcp.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/timing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zm.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zperr.Po@am__quote@ # am--include-marker
@@ -619,7 +618,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/lsz.Po
 	-rm -f ./$(DEPDIR)/protname.Po
 	-rm -f ./$(DEPDIR)/rbsb.Po
-	-rm -f ./$(DEPDIR)/tcp.Po
 	-rm -f ./$(DEPDIR)/timing.Po
 	-rm -f ./$(DEPDIR)/zm.Po
 	-rm -f ./$(DEPDIR)/zperr.Po
@@ -676,7 +674,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/lsz.Po
 	-rm -f ./$(DEPDIR)/protname.Po
 	-rm -f ./$(DEPDIR)/rbsb.Po
-	-rm -f ./$(DEPDIR)/tcp.Po
 	-rm -f ./$(DEPDIR)/timing.Po
 	-rm -f ./$(DEPDIR)/zm.Po
 	-rm -f ./$(DEPDIR)/zperr.Po
