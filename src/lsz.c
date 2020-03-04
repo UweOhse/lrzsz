@@ -167,7 +167,9 @@ int command_mode;		/* Send a command, then exit. */
 int Cmdtries = 11;
 int Cmdack1;		/* Rx ACKs command, then do it */
 int Exitcode;
+#if defined(ENABLE_TIMESYNC)
 int enable_timesync=0;
+#endif
 size_t Lastsync;		/* Last offset to which we got a ZRPOS */
 int Beenhereb4;		/* How many times we've been ZRPOS'd same place */
 
@@ -266,7 +268,9 @@ static struct option const long_options[] =
   {"quiet", no_argument, NULL, 'q'},
   {"stop-at", required_argument, NULL, 's'},
   {"syslog", optional_argument, NULL , 2},
+#if defined(ENABLE_TIMESYNC)
   {"timesync", no_argument, NULL, 'S'},
+#endif
   {"timeout", required_argument, NULL, 't'},
   {"turbo", no_argument, NULL, 'T'},
   {"unlink", no_argument, NULL, 'u'},
@@ -488,7 +492,9 @@ main(int argc, char **argv)
 					usage(2,_("stop time to small"));
 			}
 			break;
+#if defined(ENABLE_TIMESYNC)
 		case 'S': enable_timesync=1; break;
+#endif
 		case 'T': turbo_escape=1; break;
 		case 't':
 			s_err = xstrtoul (optarg, NULL, 0, &tmp, NULL);
@@ -733,6 +739,7 @@ main(int argc, char **argv)
 	/*NOTREACHED*/
 }
 
+#if defined(ENABLE_TIMESYNC)
 static int 
 send_pseudo(const char *name, const char *data)
 {
@@ -814,6 +821,7 @@ send_pseudo(const char *name, const char *data)
 	free(tmp);
 	return ret;
 }
+#endif
 
 static int
 wcsend (int argc, char *argp[])

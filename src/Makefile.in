@@ -211,7 +211,6 @@ CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CYGPATH_W = @CYGPATH_W@
-#DEFS = -DLOCALEDIR=\"$(localedir)\" -DOS=\"@host_os@\" -DCPU=\"@host_cpu@\"
 DEFS = @DEFS@ -DLOCALEDIR=\"$(localedir)\"
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -298,7 +297,7 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
-datadir = $(prefix)/share
+datadir = @prefix@/share
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
@@ -314,7 +313,7 @@ infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
-localedir = $(datadir)/locale
+localedir = @datadir@/locale
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@

@@ -1,3 +1,42 @@
+Version 0.13 - to be released, Uwe Ohse
+
+* this is a maintainance release.
+
+* the self check now passes again (it hung before with the musl c library, 
+  and that wasn't musls fault, but mine).
+
+* timesync mode is not compiled in by default anymore. To enable it use
+  --enable-timesync when running configure.
+  The timesync feature stems from PDZMODEM (c) Peter Mandrella, and as far as
+  i know is not in use anywhere anymore. If you really need this, then send 
+  me an email, otherwise this feature will go away sooner or later.
+
+  distributors: do *not* enable it by default for "compatibility". This option 
+  is legacy and doesn't "sync" time unless lrz runs as root (which it should 
+  not). The feature once was useful, back in the times of BBS systems not 
+  connected to a valid time source, but these times are quite likely to be
+  over.
+  The accuracy is quite questionable, anyway. timesync operates on whole seconds
+  only, and does not account for communication latency.
+
+* tcp mode has been removed. I'm sure nobody used it for 20 years.
+  I might implement an encrypted network mode some day, though. I'd like to 
+  see how zmodem compares to HTTP 3 in terms of transmission rates.
+
+* compatibility to a number of forgotten operating systems has been removed.
+  I really love code full of historical references, but unfortunately i don't
+  love to work on it.
+
+Version 0.12.21rc - 1999-08-22 (never released), Uwe Ohse
+
+* disabled IEXTEN, from Usman Muzaffar.
+
+* make lsz not crash with 0 bytes files
+
+* autoconf, automake updates.
+
+* removed inband tcp option (--tcp), because the last user stopped using it.
+
 Version 0.12.20 - December 1998, Uwe Ohse
 
 * works on BeOS and stone-aged SCO (sco-3.2v4.2)

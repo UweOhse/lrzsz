@@ -4,6 +4,7 @@ AC_CONFIG_SRCDIR([src/crctab.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
+AC_USE_SYSTEM_EXTENSIONS
 LT_INIT
 
 dnl AC_C_CROSS is in AC_PROG_CC since 2.12
@@ -11,9 +12,9 @@ AC_PREREQ(2.69)
 AC_AUTOCONF_VERSION dnl just note the version of autoconf
 
 PACKAGE_VERSION="$PACKAGE-$VERSION"
-AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
-AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
-AC_DEFINE_UNQUOTED(PACKAGE_VERSION, "$PACKAGE_VERSION")
+AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE", [Define to the name of the package])
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Define to the version of the package.])
+AC_DEFINE_UNQUOTED(PACKAGE_VERSION, "$PACKAGE_VERSION", [The concatenation of the package name, "-", and its version.])
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 AC_SUBST(PACKAGE_VERSION)
@@ -32,13 +33,15 @@ changequote([, ])dnl
 
 
 AC_ARG_ENABLE(timesync,
-	[--disable-timesync   exclude support for timesync protocol],
-	[if test "$enableval" = "no" ; then 
-		:
-	  else
-		AC_DEFINE(ENABLE_TIMESYNC)
-	  fi],
-	[AC_DEFINE(ENABLE_TIMESYNC)])
+	[AS_HELP_STRING([--enable-timesync],[support the timesync protocol])],
+	[case "$enableval" in 
+		yes)
+			AC_DEFINE(ENABLE_TIMESYNC,1,[Define to support the timesync protocol])
+			;;
+		no) ;;
+		*) AC_MSG_ERROR([bad value $enableval for timesync option])
+	esac]
+	)
 AC_SUBST(ENABLE_TIMESYNC)
 AC_ARG_ENABLE(pubdir,
 	[--enable-pubdir=/path   include support for a public writeable directory],
@@ -101,9 +104,7 @@ if test "x$GCC" = xyes ; then
 fi
 AC_PROG_GCC_TRADITIONAL
 AC_ISC_POSIX
-AC_AIX
 AC_MINIX
-#AM_C_PROTOTYPES
 AC_C_CONST
 AC_C_INLINE
 
@@ -168,7 +169,7 @@ AC_REPLACE_FUNCS(vasprintf)
 AC_REPLACE_GNU_GETOPT
 
 dnl for lib/error.c
-AC_DEFINE(HAVE_STRERROR)
+AC_DEFINE(HAVE_STRERROR, 1, [we have a replacement function for this, but need to tell lib/error.c about it.])
 
 
 dnl special tests

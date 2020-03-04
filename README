@@ -17,8 +17,6 @@ Future plans:
 - kill many #if(def) 
 
 - remove everything unused.
--- tcp mode (not even *i* have a use for that anymore)
--- timesync (needs root rights)
 -- gettext (no translations in 20 years, and the po dir is a mess)
 -- lrzszbug
 

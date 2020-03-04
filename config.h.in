@@ -17,23 +17,11 @@
 /* Define if your locale.h file contains LC_MESSAGES.  */
 #undef HAVE_LC_MESSAGES
 
-/* Define to the name of the distribution.  */
-#undef PACKAGE
-
-/* The concatenation of the strings PACKAGE, "-", and VERSION.  */
-#undef PACKAGE_VERSION
-
-/* Define to the version of the distribution.  */
-#undef VERSION
-
 /* Define to 1 if you have the stpcpy function.  */
 #undef HAVE_STPCPY
 
 /* Define to 1 if your utime() takes struct utimbuf as second argument */
 #undef HAVE_STRUCT_UTIMBUF
-
-/* Define to 1 if ANSI function prototypes are usable.  */
-#undef PROTOTYPES
 
 /* Define to LOG_xxx (a syslog facility) if syslog() shall be used */
 #undef ENABLE_SYSLOG
@@ -49,12 +37,6 @@
 
 /* Define to public writable directory if you want this. Leave out the "'s */
 #undef PUBDIR
-
-/* Define to 1 if you want support for the timesync protocol */
-#undef ENABLE_TIMESYNC
-
-/* define to 1. we have a replacement function for it. */
-#undef HAVE_STRERROR
 
 /* do your system libraries declare errno? */
 #undef HAVE_ERRNO_DECLARATION
@@ -77,6 +59,9 @@
 /* Define to 1 if translation of program messages to the user's native
    language is requested. */
 #undef ENABLE_NLS
+
+/* Define to support the timesync protocol */
+#undef ENABLE_TIMESYNC
 
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
@@ -167,6 +152,10 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
+/* we have a replacement function for this, but need to tell lib/error.c about
+   it. */
+#undef HAVE_STRERROR
+
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
@@ -243,7 +232,7 @@
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
-/* Name of package */
+/* Define to the name of the package */
 #undef PACKAGE
 
 /* Define to the address where bug reports for this package should be sent. */
@@ -261,7 +250,7 @@
 /* Define to the home page for this package. */
 #undef PACKAGE_URL
 
-/* Define to the version of this package. */
+/* The concatenation of the package name, "-", and its version. */
 #undef PACKAGE_VERSION
 
 /* Define as the return type of signal handlers (`int' or `void'). */
@@ -306,7 +295,7 @@
 #endif
 
 
-/* Version number of package */
+/* Define to the version of the package. */
 #undef VERSION
 
 /* Define to 1 if on MINIX. */

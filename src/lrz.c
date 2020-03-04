@@ -193,7 +193,9 @@ static struct option const long_options[] =
 	{"restricted", no_argument, NULL, 'R'},
 	{"quiet", no_argument, NULL, 'q'},
 	{"stop-at", required_argument, NULL, 's'},
+#ifdef ENABLE_TIMESYNC
 	{"timesync", no_argument, NULL, 'S'},
+#endif
 	{"timeout", required_argument, NULL, 't'},
 	{"keep-uppercase", no_argument, NULL, 'u'},
 	{"unrestrict", no_argument, NULL, 'U'},
@@ -542,7 +544,9 @@ usage(int exitcode, const char *what)
 "  -r, --resume                try to resume interrupted file transfer (Z)\n"
 "  -R, --restricted            restricted, more secure mode\n"
 "  -s, --stop-at {HH:MM|+N}    stop transmission at HH:MM or in N seconds\n"
+#ifdef ENABLE_TIMESYNC
 "  -S, --timesync              request remote time (twice: set local time)\n"
+#endif
 "      --syslog[=off]          turn syslog on or off, if possible\n"
 "  -t, --timeout N             set timeout to N tenths of a second\n"
 "  -u, --keep-uppercase        keep upper case filenames\n"
