@@ -94,6 +94,7 @@ if test "x$CFLAGS" = x ; then old_cflags_empty=1; fi
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CPP
+AC_PROG_RANLIB
 if test "x$GCC" = xyes ; then
     if test "x$old_cflags_empty" = x1 ; then
         if test "x$_CFLAGS_OWG" != x  ; then
@@ -103,8 +104,6 @@ if test "x$GCC" = xyes ; then
     fi
 fi
 AC_PROG_GCC_TRADITIONAL
-AC_ISC_POSIX
-AC_MINIX
 AC_C_CONST
 AC_C_INLINE
 
@@ -128,7 +127,6 @@ fi
 dnl Checks for libraries.
 dnl SCO needs this.
 AC_CHECK_LIB(socket,syslog,,,)
-dnl BeOS needs this
 AC_CHECK_LIB(be,syslog,,,)
 dnl slowlartis needs this
 AC_CHECK_LIB(nsl,gethostbyname,,,)
@@ -137,6 +135,7 @@ AC_CHECK_LIB(intl,gettext,,,)
 
 dnl Checks for header files.
 AC_HEADER_STDC
+AC_HEADER_MAJOR
 AC_CHECK_HEADERS(fcntl.h limits.h sys/ioctl.h sys/time.h unistd.h sys/times.h)
 LRZSZ_HEADERS_TERM_IO
 AC_CHECK_HEADERS(termios.h sys/termios.h termio.h sys/termio.h sgtty.h)
@@ -147,8 +146,10 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
+AC_TYPE_UID_T
+AC_TYPE_PID_T
 LRZSZ_TYPE_SPEED_T
-AC_STRUCT_ST_RDEV
+AC_CHECK_MEMBERS([struct stat.st_rdev])
 AC_HEADER_TIME
 lrzsz_HEADER_SYS_SELECT
 AC_STRUCT_TM

@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <sys/types.h>
 
 #ifdef USE_SGTTY
 #  ifdef LLITOUT
