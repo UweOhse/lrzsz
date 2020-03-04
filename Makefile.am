@@ -1,6 +1,6 @@
 SUBDIRS = lib src po man
 EXTRA_DIST = m4/ChangeLog  check.lrzsz COMPATABILITY README.cvs README.isdn4linux \
-	README.gettext rpmrc buildrpm fastcheck.sh README.tests \
+	README.gettext fastcheck.sh README.tests \
 	beos-runpiped.c fastcheck.beos
 ACLOCAL_AMFLAGS=-I m4
 PR=@PACKAGE@-@VERSION@
@@ -69,7 +69,4 @@ cvs-dist:
 	fi
 	cvs tag `echo "Release-$(VERSION)" | sed 's/\./-/g'`
 	$(MAKE) dist
-
-rpm: $(PR).tar.gz Specfile
-	$(srcdir)/buildrpm $(srcdir)
 

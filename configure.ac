@@ -222,8 +222,8 @@ AM_GNU_GETTEXT_VERSION
 
 dnl AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/$DATADIRNAME",[The name of the directory for locale stuff])
 
-AC_OUTPUT([Makefile lib/Makefile testsuite/Makefile \
-man/Makefile po/Makefile.in src/Makefile Specfile \
+AC_OUTPUT([Makefile lib/Makefile \
+man/Makefile po/Makefile.in src/Makefile \
 src/lrzszbug],
 [
 test -z "$CONFIG_HEADERS" || echo timestamp > stamp-h])

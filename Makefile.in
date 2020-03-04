@@ -104,7 +104,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES = Specfile
+CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -163,11 +163,10 @@ ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
 DIST_SUBDIRS = $(SUBDIRS)
-am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Specfile.in \
-	$(srcdir)/config.h.in ABOUT-NLS AUTHORS COPYING ChangeLog \
-	INSTALL NEWS README THANKS TODO acconfig.h compile \
-	config.guess config.rpath config.sub depcomp install-sh \
-	ltmain.sh missing mkinstalldirs
+am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
+	ABOUT-NLS AUTHORS COPYING ChangeLog INSTALL NEWS README THANKS \
+	TODO acconfig.h compile config.guess config.rpath config.sub \
+	depcomp install-sh ltmain.sh missing mkinstalldirs
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -347,7 +346,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = lib src po man
 EXTRA_DIST = m4/ChangeLog  check.lrzsz COMPATABILITY README.cvs README.isdn4linux \
-	README.gettext rpmrc buildrpm fastcheck.sh README.tests \
+	README.gettext fastcheck.sh README.tests \
 	beos-runpiped.c fastcheck.beos
 
 ACLOCAL_AMFLAGS = -I m4
@@ -405,8 +404,6 @@ $(srcdir)/config.h.in:  $(am__configure_deps) $(top_srcdir)/acconfig.h
 
 distclean-hdr:
 	-rm -f config.h stamp-h1
-Specfile: $(top_builddir)/config.status $(srcdir)/Specfile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -904,9 +901,6 @@ cvs-dist:
 	fi
 	cvs tag `echo "Release-$(VERSION)" | sed 's/\./-/g'`
 	$(MAKE) dist
-
-rpm: $(PR).tar.gz Specfile
-	$(srcdir)/buildrpm $(srcdir)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
