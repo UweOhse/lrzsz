@@ -1,7 +1,6 @@
 SUBDIRS = lib src po man
 EXTRA_DIST = m4/ChangeLog  check.lrzsz COMPATABILITY README.cvs README.isdn4linux \
-	README.gettext fastcheck.sh README.tests \
-	beos-runpiped.c fastcheck.beos
+	README.gettext fastcheck.sh README.tests
 ACLOCAL_AMFLAGS=-I m4
 PR=@PACKAGE@-@VERSION@
 CLEAN_FILES=fastcheck.done
@@ -10,14 +9,7 @@ oldcheck-local:
 	QUIET=-q $(srcdir)/check.lrzsz $(srcdir) `pwd`	
 
 fastcheck: 
-	if [ x`uname -s` = xBeOS ] ; then make fastcheck-beos ; else \
-		$(srcdir)/fastcheck.sh $(srcdir) `pwd` ; fi
-
-fastcheck-beos: beos-runpiped
-	$(srcdir)/fastcheck.beos $(srcdir) `pwd`
-
-beos-runpiped: beos-runpiped.c
-	$(CC) -o $@ $<
+	$(srcdir)/fastcheck.sh $(srcdir) `pwd`
 
 vcheck:
 	$(srcdir)/check.lrzsz $(srcdir) `pwd`
