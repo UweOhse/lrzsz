@@ -178,30 +178,6 @@ if test "$mode" = all -o "$mode" = z8N ; then
 	fi
 fi
 
-# out-of-band tcp
-if test "$mode" = tcpo ; then
-	echo "testing ZMODEMtcpo"
-	mkdir $testdir/zmodemtcpo
-	failed=0
-	$SZ --tcp-server -q $SZBUFSIZE $z_test_files | \
-		perl -e '$|=1; while(<>) {if (/^connect with .* "(.*)"/) {print $1 . "\n";}}' |
-	( cd $testdir/zmodemtcpo ; xargs -l1 $RZ $RZBUFSIZE -vv --tcp-client )
-	for i in $z_test_files ; do 
-		bn=`basename $i`
-		cmp $i $testdir/zmodemtcpo/$bn
-		if test $? -eq 0 ; then
-			rm -f $testdir/zmodemtcpo/$bn
-		else
-			failed=1
-		fi
-	done
-	rmdir $testdir/zmodemtcpo 2>&5
-	if test $failed = 1 ; then 
-		echo "ZMODEMtcpo test failed"
-		any_failure="$any_failure ZMODEMtcpo"
-	fi
-fi
-
 if test "$mode" = error ; then
 	# we test this only if we have something really large, because this is
 	# we only case we can expect any differences

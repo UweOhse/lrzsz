@@ -1,12 +1,14 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([lrzsz],0.12.21rc)
+AC_INIT([GNU lrzsz],0.13.0-alpha, [<uwe@ohse.de>], [lrzsz], [https://ohse.de/uwe/software/lrzsz.html])
 AC_CONFIG_SRCDIR([src/crctab.c])
+AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
 LT_INIT
 
 dnl AC_C_CROSS is in AC_PROG_CC since 2.12
-AC_PREREQ(2.12)
+AC_PREREQ(2.69)
+AC_AUTOCONF_VERSION dnl just note the version of autoconf
 
 PACKAGE_VERSION="$PACKAGE-$VERSION"
 AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
@@ -138,7 +140,7 @@ AC_CHECK_HEADERS(fcntl.h limits.h sys/ioctl.h sys/time.h unistd.h sys/times.h)
 LRZSZ_HEADERS_TERM_IO
 AC_CHECK_HEADERS(termios.h sys/termios.h termio.h sys/termio.h sgtty.h)
 AC_CHECK_HEADERS(sys/mman.h utime.h syslog.h sys/syslog.h sys/param.h)
-AC_CHECK_HEADERS(sys/select.h strings.h arpa/inet.h)
+AC_CHECK_HEADERS(sys/select.h strings.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
@@ -147,14 +149,10 @@ AC_TYPE_OFF_T
 LRZSZ_TYPE_SPEED_T
 AC_STRUCT_ST_RDEV
 AC_HEADER_TIME
-UO_TYPE_SOCKLEN_T
 lrzsz_HEADER_SYS_SELECT
 AC_STRUCT_TM
 
 dnl Checks for library functions.
-if test $cross_compiling = no ; then
-	AC_FUNC_SETVBUF_REVERSED
-fi
 AC_TYPE_SIGNAL
 dnl suggested by autoscan, but not really needed.
 dnl AC_FUNC_UTIME_NULL
