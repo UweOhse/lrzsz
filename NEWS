@@ -19,6 +19,13 @@ Version 0.13 - to be released, Uwe Ohse
   The accuracy is quite questionable, anyway. timesync operates on whole seconds
   only, and does not account for communication latency.
 
+* syslog support is now compiled in by default. You can avoid that by configuring
+  with --disable-syslog.
+  To actually use the syslogging you need to start the programs with --syslog,
+  optionally with --syslog=facility. The facility is UUCP by default.
+
+  this has been part of a cleanup of the packages logging.
+
 * tcp mode has been removed. I'm sure nobody used it for 20 years.
   I might implement an encrypted network mode some day, though. I'd like to 
   see how zmodem compares to HTTP 3 in terms of transmission rates.

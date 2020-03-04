@@ -80,25 +80,7 @@ static int wcsend (int argc, char *argp[]);
 static int wcputsec (char *buf, int sectnum, size_t cseclen);
 static void usage1 (int exitcode);
 
-#ifdef ENABLE_SYSLOG
-#define DO_SYSLOG(message) do { \
-    if (enable_syslog) { \
-        const char *shortname; \
-        if (!zi->fname) \
-            shortname="no.name"; \
-		else { \
-            shortname=strrchr(zi->fname,'/'); \
-            if (!shortname) \
-                shortname=zi->fname; \
-            else \
-                shortname++; \
-		} \
-        lsyslog message ; \
-	 } \
-  } while(0)
-#else
-#define DO_SYSLOG(message) do { } while(0)
-#endif
+int syslog_facility=-1;
 
 #define ZSDATA(x,y,z) \
 	do { if (Crc32t) {zsda32(x,y,z); } else {zsdata(x,y,z);}} while(0)
@@ -185,14 +167,6 @@ int error_count;
 
 #define MK_STRING(x) #x
 
-#ifdef ENABLE_SYSLOG
-#  if defined(ENABLE_SYSLOG_FORCE) || defined(ENABLE_SYSLOG_DEFAULT)
-int enable_syslog=TRUE;
-#  else
-int enable_syslog=FALSE;
-#  endif
-#endif
-
 jmp_buf intrjmp;	/* For the interrupt on RX CAN */
 
 static long min_bps;
@@ -203,7 +177,7 @@ static int zrqinits_sent=0;
 static int play_with_sigint=0;
 
 /* called by signal interrupt or terminate to clean things up */
-RETSIGTYPE
+void
 bibi (int n)
 {
 	canit(STDOUT_FILENO);
@@ -219,7 +193,7 @@ bibi (int n)
 }
 
 /* Called when ZMODEM gets an interrupt (^C) */
-static RETSIGTYPE
+static void
 onintr(int n)
 {
 	signal(SIGINT, SIG_IGN);
@@ -307,6 +281,7 @@ main(int argc, char **argv)
 	int c;
 	const char *Cmdstr=NULL;		/* Pointer to the command string */
 	unsigned int startup_delay=0;
+	syslog_facility=parse_syslog_facility("UUCP"); // or include syslog.h sys/syslog.h...
 
 	if (((cp = getenv("ZNULLS")) != NULL) && *cp)
 		Znulls = atoi(cp);
@@ -320,10 +295,6 @@ main(int argc, char **argv)
 		Restricted=1;
 	from_cu();
 	chkinvok(argv[0]);
-
-#ifdef ENABLE_SYSLOG
-	openlog(program_name,LOG_PID,ENABLE_SYSLOG);
-#endif
 
 	setlocale (LC_ALL, "");
 	bindtextdomain (PACKAGE, LOCALEDIR);
@@ -534,23 +505,20 @@ main(int argc, char **argv)
 			/* **** FALLL THROUGH TO **** */
 		case 'y':
 			Lzmanag = ZF1_ZMCLOB; break;
-		case 2:
 #ifdef ENABLE_SYSLOG
-#  ifndef ENABLE_SYSLOG_FORCE
+		case 2:
 			if (optarg && (!strcmp(optarg,"off") || !strcmp(optarg,"no")))
 			{
-				if (under_rsh)
-					error(0,0, _("cannot turnoff syslog"));
-				else
-					enable_syslog=FALSE;
+				syslog_facility=-1;
+			} else if (optarg) {
+				syslog_facility=parse_syslog_facility(optarg); // or include syslog.h sys/syslog.h...
+				if (-1==syslog_facility) {
+					usage(2,_("invalid syslog facility"));
+				}
 			}
-			else
-				enable_syslog=TRUE;
-#  else
-			error(0,0, _("cannot turnoff syslog"));
-#  endif
-#endif
+			/* else stay at default */
 			break;
+#endif
 		case 4:
 			s_err = xstrtoul (optarg, NULL, 0, &tmp, NULL);
 			startup_delay = tmp;
@@ -568,6 +536,10 @@ main(int argc, char **argv)
 		error(1,0,
 		_("this program was never intended to be used setuid\n"));
 	}
+
+#ifdef ENABLE_SYSLOG
+	openlog(program_name,LOG_PID,syslog_facility);
+#endif
 
 	txbuf=malloc(MAX_BLOCK);
 	if (!txbuf) error(1,0,_("out of memory"));
@@ -848,7 +820,7 @@ wcsend (int argc, char *argp[])
 			vstring ("\r\n");
 			vstringf (_("Answering TIMESYNC at %s"),buf);
 		}
-#if defined(HAVE_TIMEZONE_VAR)
+#if defined(HAVE_DECL_TIMEZONE)
 		sprintf(buf+strlen(buf),"%ld\r\n", timezone / 60);
 		if (Verbose)
 			vstringf (" (%s %ld)\r\n", _ ("timezone"), timezone / 60);
@@ -918,15 +890,6 @@ wcs(const char *oname, const char *remotename)
 #ifdef HAVE_MMAP
 	int dont_mmap_this=0;
 #endif
-#ifdef ENABLE_SYSLOG
-	const char *shortname;
-	shortname=strrchr(oname,'/');
-	if (shortname)
-		shortname++;
-	else
-		shortname=oname;
-#endif
-
 
 	if (Restricted) {
 		/* restrict pathnames to current tree or uucppublic */
@@ -1043,35 +1006,22 @@ wcs(const char *oname, const char *remotename)
 	++Filcnt;
 	switch (wctxpn(&zi)) {
 	case ERROR:
-#ifdef ENABLE_SYSLOG
-		if (enable_syslog)
-			lsyslog(LOG_INFO, _("%s/%s: error occured"),protname(),shortname);
-#endif
+		lrzsz_syslog(LOG_INFO, &zi, _("error occured"));
 		return ERROR;
 	case ZSKIP:
+		lrzsz_syslog(LOG_INFO, &zi, _("skipped"));
 		error(0,0, _("skipped: %s"),name);
-#ifdef ENABLE_SYSLOG
-		if (enable_syslog)
-			lsyslog(LOG_INFO, _("%s/%s: skipped"),protname(),shortname);
-#endif
 		return OK;
 	}
 	if (!zmodem_requested && wctx(&zi)==ERROR)
 	{
-#ifdef ENABLE_SYSLOG
-		if (enable_syslog)
-			lsyslog(LOG_INFO, _("%s/%s: error occured"),protname(),shortname);
-#endif
+		lrzsz_syslog(LOG_INFO, &zi, _("error occured"));
 		return ERROR;
 	}
 	if (Unlinkafter)
 		unlink(oname);
 
-	if (Verbose > 1
-#ifdef ENABLE_SYSLOG
-		|| enable_syslog
-#endif
-		) {
+	if (1) {
 		long bps;
 		double d=timing(0,NULL);
 		if (d==0) /* can happen if timing() uses time() */
@@ -1081,11 +1031,7 @@ wcs(const char *oname, const char *remotename)
 		if (Verbose > 1) 
 			vstringf(_("Bytes Sent:%7ld   BPS:%-8ld                        \n"),
 				(long) zi.bytes_sent,bps);
-#ifdef ENABLE_SYSLOG
-		if (enable_syslog)
-			lsyslog(LOG_INFO, "%s/%s: %ld Bytes, %ld BPS",shortname,
-				protname(), (long) zi.bytes_sent,bps);
-#endif
+		lrzsz_syslog(LOG_INFO, &zi,  "%ld bytes,  %ld bps", (long) zi.bytes_sent,bps);
 	}
 	return 0;
 }
@@ -1118,8 +1064,7 @@ wctxpn(struct zm_fileinfo *zi)
 	if (!zmodem_requested)
 		if (getnak()) {
 			vfile("getnak failed");
-			DO_SYSLOG((LOG_INFO, "%s/%s: getnak failed",
-					   shortname,protname()));
+			lrzsz_syslog(LOG_NOTICE, zi, "getnak failed");
 			return ERROR;
 		}
 
@@ -1172,8 +1117,7 @@ wctxpn(struct zm_fileinfo *zi)
 		return zsendfile(zi,txbuf, 1+strlen(p)+(p-txbuf));
 	if (wcputsec(txbuf, 0, 128)==ERROR) {
 		vfile("wcputsec failed");
-		DO_SYSLOG((LOG_INFO, "%s/%s: wcputsec failed",
-				   shortname,protname()));
+		lrzsz_syslog(LOG_NOTICE, zi, "wcputsec failed");
 		return ERROR;
 	}
 	return OK;
@@ -1697,26 +1641,21 @@ again:
 		case ZRQINIT:  /* remote site is sender! */
 			if (Verbose)
 				vstringf(_("got ZRQINIT"));
-			DO_SYSLOG((LOG_INFO, "%s/%s: got ZRQINIT - sz talks to sz",
-					   shortname,protname()));
+			lrzsz_syslog(LOG_ERR, zi, "got ZRQINIT - sz talks to sz");
 			return ERROR;
 		case ZCAN:
 			if (Verbose)
 				vstringf(_("got ZCAN"));
-			DO_SYSLOG((LOG_INFO, "%s/%s: got ZCAN - receiver canceled",
-					   shortname,protname()));
+			lrzsz_syslog(LOG_NOTICE, zi, "got ZCAN - receiver canceled");
 			return ERROR;
 		case TIMEOUT:
-			DO_SYSLOG((LOG_INFO, "%s/%s: got TIMEOUT",
-					   shortname,protname()));
+			lrzsz_syslog(LOG_NOTICE, zi, "got TIMEOUT");
 			return ERROR;
 		case ZABORT:
-			DO_SYSLOG((LOG_INFO, "%s/%s: got ZABORT",
-					   shortname,protname()));
+			lrzsz_syslog(LOG_NOTICE, zi, "got ZABORT");
 			return ERROR;
 		case ZFIN:
-			DO_SYSLOG((LOG_INFO, "%s/%s: got ZFIN",
-					   shortname,protname()));
+			lrzsz_syslog(LOG_NOTICE, zi, "got ZFIN");
 			return ERROR;
 		case ZCRC:
 			crc = 0xFFFFFFFFL;
@@ -1778,8 +1717,7 @@ again:
 #endif
 
 			vfile("receiver skipped");
-			DO_SYSLOG((LOG_INFO, "%s/%s: receiver skipped",
-					   shortname, protname()));
+			lrzsz_syslog(LOG_INFO,zi,"receiver skipped");
 			return ZSKIP;
 		case ZRPOS:
 			/*
@@ -1792,8 +1730,7 @@ again:
 			if (rxpos && fseek(input_f, (long) rxpos, 0)) {
 				int er=errno;
 				vfile("fseek failed: %s", strerror(er));
-				DO_SYSLOG((LOG_INFO, "%s/%s: fseek failed: %s",
-						   shortname, protname(), strerror(er)));
+				lrzsz_syslog(LOG_ERR, zi, "fseek failed: %s",strerror(errno));
 				return ERROR;
 			}
 			if (rxpos)
@@ -1855,24 +1792,21 @@ zsendfdata (struct zm_fileinfo *zi)
 				fclose (input_f);
 				input_f=NULL;
 			}
-			DO_SYSLOG((LOG_INFO, "%s/%s: got %d",
-					   shortname, protname(), c));
+			lrzsz_syslog(LOG_ERR, zi, "got %d",c);
 			return ERROR;
 		case ZCAN:
 			if (input_f) {
 				fclose (input_f);
 				input_f=NULL;
 			}
-			DO_SYSLOG((LOG_INFO, "%s/%s: got ZCAN",
-					   shortname, protname()));
+			lrzsz_syslog(LOG_INFO, zi, "got ZCAN");
 			return ERROR;
 		case ZSKIP:
 			if (input_f) {
 				fclose (input_f);
 				input_f=NULL;
 			}
-			DO_SYSLOG((LOG_INFO, "%s/%s: got ZSKIP",
-					   shortname, protname()));
+			lrzsz_syslog(LOG_INFO, zi, "got ZSKIP");
 			return ZSKIP;
 		case ZACK:
 		case ZRPOS:
@@ -1973,8 +1907,8 @@ zsendfdata (struct zm_fileinfo *zi)
 								  last_bps, min_bps);
 								vstring("\r\n");
 							}
-							DO_SYSLOG((LOG_INFO, "%s/%s: bps rate low: %ld <%ld",
-									   shortname, protname(), last_bps, min_bps));
+							lrzsz_syslog(LOG_NOTICE, zi, "bps rate too low: %ld < %ld",
+									   last_bps, min_bps);
 							return ERROR;
 						}
 					} else
@@ -1989,8 +1923,7 @@ zsendfdata (struct zm_fileinfo *zi)
 					vstring(_("zsendfdata: reached stop time"));
 					vstring("\r\n");
 				}
-				DO_SYSLOG((LOG_INFO, "%s/%s: reached stop time",
-						   shortname, protname()));
+				lrzsz_syslog(LOG_NOTICE, zi, "reached stop time");
 				return ERROR;
 			}
 
@@ -2075,16 +2008,14 @@ zsendfdata (struct zm_fileinfo *zi)
 				fclose (input_f);
 				input_f=NULL;
 			}
-			DO_SYSLOG((LOG_INFO, "%s/%s: got ZSKIP",
-					   shortname, protname()));
+			lrzsz_syslog(LOG_INFO, zi, "got ZSKIP");
 			return c;
 		default:
 			if (input_f) {
 				fclose (input_f);
 				input_f=NULL;
 			}
-			DO_SYSLOG((LOG_INFO, "%s/%s: got %d",
-					   shortname, protname(), c));
+			lrzsz_syslog(LOG_ERR, zi, "got %d", c);
 			return ERROR;
 		}
 	}

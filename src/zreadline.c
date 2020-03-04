@@ -43,7 +43,7 @@ static char *readline_buffer;
 int readline_left=0;
 char *readline_ptr;
 
-static RETSIGTYPE
+static void
 zreadline_alarm_handler(int dummy)
 {
 	dummy++; /* doesn't need to do anything */

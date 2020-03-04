@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([GNU lrzsz],0.13.0-alpha, [<uwe@ohse.de>], [lrzsz], [https://ohse.de/uwe/software/lrzsz.html])
+AC_INIT([GNU lrzsz],[0.13.0-alpha],[<uwe@ohse.de>],[lrzsz],[https://ohse.de/uwe/software/lrzsz.html])
 AC_CONFIG_SRCDIR([src/crctab.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE
@@ -7,8 +7,8 @@ AM_CONFIG_HEADER(config.h)
 AC_USE_SYSTEM_EXTENSIONS
 LT_INIT
 
-dnl AC_C_CROSS is in AC_PROG_CC since 2.12
-AC_PREREQ(2.69)
+dnl  is in AC_PROG_CC since 2.12
+AC_PREREQ([2.69])
 AC_AUTOCONF_VERSION dnl just note the version of autoconf
 
 PACKAGE_VERSION="$PACKAGE-$VERSION"
@@ -58,36 +58,19 @@ AC_ARG_ENABLE(mkdir,
 	  	AC_DEFINE(ENABLE_MKDIR)
 	  fi],
 	[AC_DEFINE(ENABLE_MKDIR)])
+
 AC_ARG_ENABLE(syslog,
-	[--enable-syslog=FACILITY,{force,default,optional} include syslogsupport],
+	[AS_HELP_STRING([--disable-syslog],[disable support for syslog()])],
 	[
-	  if test "$enableval" = "no" ; then 
-		:
-	  else
-	    case "$enableval" in
-	    *,*)
-			level=`echo $enableval|sed -e 's/^.*,//'`
-			fac=`echo $enableval|sed -e 's/,.*$//'`
-			AC_DEFINE_UNQUOTED(ENABLE_SYSLOG,$fac)
-			;;
-		*)
-			lookup_facility=LOG_UUCP
-			level="$enableval"
-			;;
-		esac
-	  	if test "$level" = "force" ; then
-		  AC_DEFINE(ENABLE_SYSLOG_FORCE)
-	  	else 
-	  	  if test "$level" = "optional" ; then
-	  	    :
-	  	  else
-		    AC_DEFINE(ENABLE_SYSLOG_DEFAULT)
-		  fi
-	  	fi
-	  fi],[
-		AC_DEFINE(ENABLE_SYSLOG_DEFAULT)
-		lookup_facility=LOG_UUCP
-	  ])
+	case "$enableval" in 
+	no) 
+		;;
+	yes)
+		AC_DEFINE(ENABLE_SYSLOG,1,[define to 1 to include syslog support.])
+		;;
+	esac
+	],
+	[AC_DEFINE([ENABLE_SYSLOG],1,[define to 1 to include syslog support.])])
 
 if test "x$CFLAGS" = x ; then old_cflags_empty=1; fi
 
@@ -155,7 +138,7 @@ lrzsz_HEADER_SYS_SELECT
 AC_STRUCT_TM
 
 dnl Checks for library functions.
-AC_TYPE_SIGNAL
+
 dnl suggested by autoscan, but not really needed.
 dnl AC_FUNC_UTIME_NULL
 AC_FUNC_MMAP
@@ -175,43 +158,7 @@ AC_DEFINE(HAVE_STRERROR, 1, [we have a replacement function for this, but need t
 
 dnl special tests
 dnl
-AC_MSG_CHECKING([for timezone variable])
-AC_CACHE_VAL(libquark_cv_var_timezone,[
-AC_TRY_LINK([#include <time.h>],[return(int)(timezone/2);],
-	[libquark_cv_var_timezone=yes],
-	[libquark_cv_var_timezone=no])
-])
-if test $libquark_cv_var_timezone = yes ; then
-	AC_MSG_RESULT(yes)
-	AC_DEFINE(HAVE_TIMEZONE_VAR)
-else
-	AC_MSG_RESULT(no)
-fi
-if test "x$lookup_facility" = x ; then
-	:
-else
-	AC_MSG_CHECKING([for $lookup_facility])
-	AC_CACHE_VAL(lrzsz_cv_lookup_facility,[
-		AC_EGREP_CPP(ihave$lookup_facility, [
-#ifdef HAVE_SYSLOG_H
-#include <syslog.h>
-#else
-#include <sys/syslog.h>
-#endif
-#ifdef $lookup_facility
-ihave$lookup_facility
-#endif
-		], lrzsz_cv_lookup_facility=yes, lrzsz_cv_lookup_facility=no)
-	])
-	if test $lrzsz_cv_lookup_facility = yes ; then
-		AC_MSG_RESULT(yes)
-		AC_DEFINE_UNQUOTED(ENABLE_SYSLOG,$lookup_facility)
-	else
-		AC_DEFINE(ENABLE_SYSLOG,LOG_USER)
-		AC_MSG_RESULT(no)
-	fi
-fi
-
+AC_CHECK_DECLS([timezone],[],[], [[#include <time.h>]])
 
 AC_SUBST(CFLAGS)
 AC_SUBST(LDFLAGS)
@@ -222,8 +169,9 @@ AM_GNU_GETTEXT_VERSION
 
 dnl AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/$DATADIRNAME",[The name of the directory for locale stuff])
 
-AC_OUTPUT([Makefile lib/Makefile \
+AC_CONFIG_FILES([Makefile lib/Makefile \
 man/Makefile po/Makefile.in src/Makefile \
-src/lrzszbug],
-[
-test -z "$CONFIG_HEADERS" || echo timestamp > stamp-h])
+src/lrzszbug])
+AC_CONFIG_COMMANDS([default],[
+test -z "$CONFIG_HEADERS" || echo timestamp > stamp-h],[])
+AC_OUTPUT

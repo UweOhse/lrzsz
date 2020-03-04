@@ -191,7 +191,14 @@ struct termios;
 #    endif
 #  endif
 #endif
-#ifndef ENABLE_SYSLOG
+
+#ifdef ENABLE_SYSLOG
+#  ifndef HAVE_SYSLOG
+#    error "shall enable syslog() usage, but syslog() is not available"
+#  endif
+#endif
+
+#ifndef HAVE_SYSLOG
 #  define openlog(name,pid,facility) /* void it */
 #  define setlogmask(x) /* void it */
 #else
@@ -290,7 +297,7 @@ extern int no_timeout;
 extern int Zctlesc;    /* Encode control characters */
 extern int under_rsh;
 
-RETSIGTYPE bibi(int n);
+void bibi(int n);
 
 #define sendline(c) putchar((c) & 0377)
 #define xsendline(c) putchar(c)
@@ -381,8 +388,8 @@ long rclhdr (char *hdr);
 
 const char * protname (void);
 void lsyslog (int, const char *,...);
-
-
+void lrzsz_syslog(int, struct zm_fileinfo *, const char *, ...);
+int parse_syslog_facility(const char *s);
 
 
 #endif
