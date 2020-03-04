@@ -1,1 +1,1 @@
-double timing __P ((int reset,time_t *now));
+double timing (int reset,time_t *now);

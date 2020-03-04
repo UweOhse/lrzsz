@@ -90,19 +90,19 @@ static const char *frametypes[] = {
 
 #define badcrc _("Bad CRC")
 /* static char *badcrc = "Bad CRC"; */
-static inline int noxrd7 __P ((void));
-static inline int zdlread __P ((void));
-static int zdlread2 __P ((int));
-static inline int zgeth1 __P ((void));
-static void zputhex __P ((int c, char *pos));
-static inline int zgethex __P ((void));
-static int zrbhdr __P ((char *hdr));
-static int zrbhdr32 __P ((char *hdr));
-static int zrhhdr __P ((char *hdr));
+static inline int noxrd7 (void);
+static inline int zdlread (void);
+static int zdlread2 (int);
+static inline int zgeth1 (void);
+static void zputhex (int c, char *pos);
+static inline int zgethex (void);
+static int zrbhdr (char *hdr);
+static int zrbhdr32 (char *hdr);
+static int zrhhdr (char *hdr);
 static char zsendline_tab[256];
-static int zrdat32 __P ((char *buf, int length, size_t *));
-static void zsbh32 __P ((char *hdr, int type));
-static inline void zsendline_s __P((const char *s, size_t count));
+static int zrdat32 (char *buf, int length, size_t *);
+static void zsbh32 (char *hdr, int type);
+static inline void zsendline_s (const char *s, size_t count);
 
 extern int zmodem_requested;
 

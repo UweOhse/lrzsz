@@ -88,7 +88,7 @@ static struct {
 	{0, 0}
 };
 
-static unsigned getspeed __P((speed_t));
+static unsigned getspeed (speed_t);
 
 static unsigned
 getspeed(speed_t code)
