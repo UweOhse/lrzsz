@@ -37,6 +37,7 @@
 
 
 #include "zglobal.h"
+#include "lrzsz.h"
 
 #include <stdio.h>
 
@@ -667,13 +668,13 @@ crcfoo:
  *   Return ERROR instantly if ZCRCW sequence, for fast error recovery.
  */
 int
-zgethdr(char *hdr, int eflag, size_t *Rxpos)
+zgethdr(char *hdr, int eflag, size_t *Rxpos, struct lrzsz_config *config)
 {
 	register int c, cancount;
 	unsigned int max_garbage; /* Max bytes before start of frame */
 	size_t rxpos=0; /* keep gcc happy */
 
-	max_garbage = Zrwindow + Baudrate;
+	max_garbage = Zrwindow + config->baudrate;
 	Rxframeind = Rxtype = 0;
 
 startover:

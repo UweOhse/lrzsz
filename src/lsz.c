@@ -34,6 +34,8 @@
 #include <errno.h>
 #include <getopt.h>
 
+struct lrzsz_config config;
+
 #if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MMAP)
 #  include <sys/mman.h>
 size_t mm_size;
@@ -46,7 +48,6 @@ void *mm_addr=NULL;
 #include "xstrtoul.h"
 #include "error.h"
 
-unsigned Baudrate=2400;	/* Default, should be set by first mode() call */
 unsigned Txwindow;	/* Control the size of the transmitted window */
 unsigned Txwspac;	/* Spacing between zcrcq requests */
 unsigned Txwcnt;	/* Counter used to space ack requests */
@@ -182,7 +183,7 @@ bibi (int n)
 {
 	canit(STDOUT_FILENO);
 	fflush (stdout);
-	io_mode (io_mode_fd,0);
+	lrzsz_iomode(io_mode_fd, LRZSZ_IOMODE_RESET, &config);
 	if (n == 99)
 		error (0, 0, _ ("io_mode(,2) in rbsb.c not implemented\n"));
 	else
@@ -293,7 +294,7 @@ main(int argc, char **argv)
 	}
 	if ((cp=getenv("ZMODEM_RESTRICTED"))!=NULL)
 		Restricted=1;
-	from_cu();
+	lrzsz_check_stderr(&config);
 	chkinvok(argv[0]);
 
 	setlocale (LC_ALL, "");
@@ -579,7 +580,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (Fromcu && !Quiet) {
+	if (config.io.may_use_stderr && !Quiet) {
 		if (Verbose == 0)
 			Verbose = 2;
 	}
@@ -614,7 +615,7 @@ main(int argc, char **argv)
 	} else if (stdin_files==1) {
 		io_mode_fd=1;
 	}
-	io_mode(io_mode_fd,1);
+	lrzsz_iomode(io_mode_fd, LRZSZ_IOMODE_RAW, &config);
 	readline_setup(io_mode_fd, 128, 256);
 
 	if (signal(SIGINT, bibi) == SIG_IGN)
@@ -692,7 +693,7 @@ main(int argc, char **argv)
 		canit(STDOUT_FILENO);
 	}
 	fflush(stdout);
-	io_mode(io_mode_fd,0);
+	lrzsz_iomode(io_mode_fd, LRZSZ_IOMODE_RESET, &config);
 	if (Exitcode)
 		dm=Exitcode;
 	else if (errcnt)
@@ -1157,7 +1158,7 @@ getnak(void)
 			}
 			continue;
 		case WANTG:
-			io_mode(io_mode_fd,2);	/* Set cbreak, XON/XOFF, etc. */
+			lrzsz_iomode(io_mode_fd, LRZSZ_IOMODE_UNRAW_G, &config);
 			Optiong = TRUE;
 			blklen=1024;
 		case WANTCRC:
@@ -1474,7 +1475,7 @@ getzrxinit(void)
 		}
 		dont_send_zrqinit=0;
 		
-		switch (zgethdr(Rxhdr, 1,&rxpos)) {
+		switch (zgethdr(Rxhdr, 1,&rxpos, &config)) {
 		case ZCHALLENGE:	/* Echo receiver's challenge numbr */
 			stohdr(rxpos);
 			zshhdr(ZACK, Txhdr);
@@ -1499,7 +1500,7 @@ getzrxinit(void)
 			vfile("Rxbuflen=%d Tframlen=%d", Rxbuflen, Tframlen);
 			if ( play_with_sigint)
 				signal(SIGINT, SIG_IGN);
-			io_mode(io_mode_fd,2);	/* Set cbreak, XON/XOFF, etc. */
+			lrzsz_iomode(io_mode_fd, LRZSZ_IOMODE_UNRAW_G, &config);
 #ifndef READCHECK
 			/* Use MAX_BLOCK byte frames if no sample/interrupt */
 			if (Rxbuflen < 32 || Rxbuflen > MAX_BLOCK) {
@@ -1540,11 +1541,11 @@ getzrxinit(void)
 			}
 			/* Set initial subpacket length */
 			if (blklen < 1024) {	/* Command line override? */
-				if (Baudrate > 300)
+				if (config.baudrate > 300)
 					blklen = 256;
-				if (Baudrate > 1200)
+				if (config.baudrate > 1200)
 					blklen = 512;
-				if (Baudrate > 2400)
+				if (config.baudrate > 2400)
 					blklen = 1024;
 			}
 			if (Rxbuflen && blklen>Rxbuflen)
@@ -1588,7 +1589,7 @@ sendzsinit(void)
 		else
 			zsbhdr(ZSINIT, Txhdr);
 		ZSDATA(Myattn, 1+strlen(Myattn), ZCRCW);
-		c = zgethdr(Rxhdr, 1,NULL);
+		c = zgethdr(Rxhdr, 1,NULL, &config);
 		switch (c) {
 		case ZCAN:
 			return ERROR;
@@ -1628,7 +1629,7 @@ zsendfile(struct zm_fileinfo *zi, const char *buf, size_t blen)
 		zsbhdr(ZFILE, Txhdr);
 		ZSDATA(buf, blen, ZCRCW);
 again:
-		gotblock = zgethdr(Rxhdr, 1, &rxpos);
+		gotblock = zgethdr(Rxhdr, 1, &rxpos, &config);
 		switch (gotblock) {
 		case ZRINIT:
 			while ((gotchar = READLINE_PF(50)) > 0)
@@ -2152,7 +2153,7 @@ getinsync(struct zm_fileinfo *zi, int flag)
 
 	for (;;) {
 		int gotblock;
-		gotblock = zgethdr(Rxhdr, 0, &rxpos);
+		gotblock = zgethdr(Rxhdr, 0, &rxpos, &config);
 		switch (gotblock) {
 		case ZCAN:
 		case ZABORT:
@@ -2213,7 +2214,7 @@ saybibi(void)
 	for (;;) {
 		stohdr(0L);		/* CAF Was zsbhdr - minor change */
 		zshhdr(ZFIN, Txhdr);	/*  to make debugging easier */
-		switch (zgethdr(Rxhdr, 0,NULL)) {
+		switch (zgethdr(Rxhdr, 0,NULL, &config)) {
 		case ZFIN:
 			sendline('O');
 			sendline('O');
@@ -2242,7 +2243,7 @@ zsendcmd(const char *buf, size_t blen)
 		ZSDATA(buf, blen, ZCRCW);
 listen:
 		Rxtimeout = 100;		/* Ten second wait for resp. */
-		c = zgethdr(Rxhdr, 1, &rxpos);
+		c = zgethdr(Rxhdr, 1, &rxpos, &config);
 
 		switch (c) {
 		case ZRINIT:

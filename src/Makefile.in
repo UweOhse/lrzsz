@@ -109,10 +109,12 @@ CONFIG_CLEAN_FILES = lrzszbug
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
+am__objects_1 = iomode.$(OBJEXT) baudrate.$(OBJEXT) \
+	check_stderr.$(OBJEXT)
 am_lrz_OBJECTS = lrz.$(OBJEXT) timing.$(OBJEXT) zperr.$(OBJEXT) \
 	zreadline.$(OBJEXT) crctab.$(OBJEXT) rbsb.$(OBJEXT) \
 	zm.$(OBJEXT) protname.$(OBJEXT) lsyslog.$(OBJEXT) \
-	canit.$(OBJEXT)
+	canit.$(OBJEXT) $(am__objects_1)
 lrz_OBJECTS = $(am_lrz_OBJECTS)
 lrz_LDADD = $(LDADD)
 lrz_DEPENDENCIES = ../lib/libzmodem.a
@@ -123,7 +125,7 @@ am__v_lt_1 =
 am_lsz_OBJECTS = lsz.$(OBJEXT) timing.$(OBJEXT) zperr.$(OBJEXT) \
 	zreadline.$(OBJEXT) crctab.$(OBJEXT) rbsb.$(OBJEXT) \
 	zm.$(OBJEXT) protname.$(OBJEXT) lsyslog.$(OBJEXT) \
-	canit.$(OBJEXT)
+	canit.$(OBJEXT) $(am__objects_1)
 lsz_OBJECTS = $(am_lsz_OBJECTS)
 lsz_LDADD = $(LDADD)
 lsz_DEPENDENCIES = ../lib/libzmodem.a
@@ -142,8 +144,10 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/canit.Po ./$(DEPDIR)/crctab.Po \
-	./$(DEPDIR)/lrz.Po ./$(DEPDIR)/lsyslog.Po ./$(DEPDIR)/lsz.Po \
+am__depfiles_remade = ./$(DEPDIR)/baudrate.Po ./$(DEPDIR)/canit.Po \
+	./$(DEPDIR)/check_stderr.Po ./$(DEPDIR)/crctab.Po \
+	./$(DEPDIR)/iomode.Po ./$(DEPDIR)/lrz.Po \
+	./$(DEPDIR)/lsyslog.Po ./$(DEPDIR)/lsz.Po \
 	./$(DEPDIR)/protname.Po ./$(DEPDIR)/rbsb.Po \
 	./$(DEPDIR)/timing.Po ./$(DEPDIR)/zm.Po ./$(DEPDIR)/zperr.Po \
 	./$(DEPDIR)/zreadline.Po
@@ -331,8 +335,9 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-lrz_SOURCES = lrz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c
-lsz_SOURCES = lsz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c
+COMMON_SOURCES = iomode.c baudrate.c check_stderr.c
+lrz_SOURCES = lrz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
+lsz_SOURCES = lsz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
 noinst_HEADERS = timing.h zglobal.h zmodem.h
 AM_CFLAGS = @CFLAGS@
 DISTCLEAN_FILES = lrzszbug
@@ -438,8 +443,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/baudrate.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/canit.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_stderr.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crctab.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iomode.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lrz.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lsyslog.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lsz.Po@am__quote@ # am--include-marker
@@ -610,8 +618,11 @@ clean: clean-am
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/canit.Po
+		-rm -f ./$(DEPDIR)/baudrate.Po
+	-rm -f ./$(DEPDIR)/canit.Po
+	-rm -f ./$(DEPDIR)/check_stderr.Po
 	-rm -f ./$(DEPDIR)/crctab.Po
+	-rm -f ./$(DEPDIR)/iomode.Po
 	-rm -f ./$(DEPDIR)/lrz.Po
 	-rm -f ./$(DEPDIR)/lsyslog.Po
 	-rm -f ./$(DEPDIR)/lsz.Po
@@ -666,8 +677,11 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/canit.Po
+		-rm -f ./$(DEPDIR)/baudrate.Po
+	-rm -f ./$(DEPDIR)/canit.Po
+	-rm -f ./$(DEPDIR)/check_stderr.Po
 	-rm -f ./$(DEPDIR)/crctab.Po
+	-rm -f ./$(DEPDIR)/iomode.Po
 	-rm -f ./$(DEPDIR)/lrz.Po
 	-rm -f ./$(DEPDIR)/lsyslog.Po
 	-rm -f ./$(DEPDIR)/lsz.Po

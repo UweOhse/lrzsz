@@ -41,10 +41,11 @@
 #include "long-options.h"
 #include "xstrtoul.h"
 #include "error.h"
+#include "lrzsz.h"
 
 #define MAX_BLOCK 8192
 
-unsigned Baudrate = 2400;
+struct lrzsz_config config;
 
 FILE *fout;
 
@@ -132,7 +133,7 @@ bibi(int n)
 	if (zmodem_requested)
 		zmputs(Attn);
 	canit(STDOUT_FILENO);
-	io_mode(0,0);
+	lrzsz_iomode(0,LRZSZ_IOMODE_RESET, &config);
 	error(128+n,0,_("caught signal %d; exiting"), n);
 }
 
@@ -210,7 +211,7 @@ main(int argc, char *argv[])
 	/* make temporary and unfinished files */
 	umask(0077);
 
-	from_cu();
+	lrzsz_check_stderr(&config);
 	chkinvok(argv[0]);	/* if called as [-]rzCOMMAND set flag */
 
 	setlocale (LC_ALL, "");
@@ -429,14 +430,14 @@ main(int argc, char *argv[])
 	if (Restricted && allow_remote_commands) {
 		allow_remote_commands=FALSE;
 	}
-	if (Fromcu && !Quiet) {
+	if (config.io.may_use_stderr && !Quiet) {
 		if (Verbose == 0)
 			Verbose = 2;
 	}
 
 	vfile("%s %s\n", program_name, VERSION);
 
-	io_mode(0,1);
+	lrzsz_iomode(0, LRZSZ_IOMODE_RAW, &config);
 	readline_setup(0, MAX_BLOCK, MAX_BLOCK*2);
 	if (signal(SIGINT, bibi) == SIG_IGN) 
 		signal(SIGINT, SIG_IGN);
@@ -448,7 +449,7 @@ main(int argc, char *argv[])
 		exitcode=0200;
 		canit(STDOUT_FILENO);
 	}
-	io_mode(0,0);
+	lrzsz_iomode(0,LRZSZ_IOMODE_RESET, &config);
 	if (exitcode && !zmodem_requested)	/* bellow again with all thy might. */
 		canit(STDOUT_FILENO);
 	if (Verbose)
@@ -887,7 +888,7 @@ do_crc_check(FILE *f, struct zm_fileinfo *fi, size_t remote_bytes, size_t check_
 		zshhdr(ZCRC, Txhdr);
 		while(t2<3) {
 			size_t tmp;
-			c = zgethdr(Rxhdr, 0, &tmp);
+			c = zgethdr(Rxhdr, 0, &tmp, &config);
 			rcrc=(unsigned long) tmp;
 			switch (c) {
 			default: /* ignore */
@@ -1483,7 +1484,7 @@ tryz(void)
 		if (tryzhdrtype == ZSKIP)	/* Don't skip too far */
 			tryzhdrtype = ZRINIT;	/* CAF 8-21-87 */
 again:
-		switch (zgethdr(Rxhdr, 0, NULL)) {
+		switch (zgethdr(Rxhdr, 0, NULL, &config)) {
 		case ZRQINIT:
 			/* getting one ZRQINIT is totally ok. Normally a ZFILE follows 
 			 * (and might be in our buffer, so don't purge it). But if we
@@ -1511,7 +1512,7 @@ again:
 			ztrans = Rxhdr[ZF2];
 			tryzhdrtype = ZRINIT;
 			c = zrdata(secbuf, MAX_BLOCK,&bytes_in_block);
-			io_mode(0,3);
+			lrzsz_iomode(0,3, &config);
 			if (c == GOTCRCW)
 				return ZFILE;
 			zshhdr(ZNAK, Txhdr);
@@ -1565,7 +1566,7 @@ again:
 				do {
 					zshhdr(ZCOMPL, Txhdr);
 				}
-				while (++errors<20 && zgethdr(Rxhdr,1, NULL) != ZFIN);
+				while (++errors<20 && zgethdr(Rxhdr,1, NULL, &config) != ZFIN);
 				ackbibi();
 				if (cmdzack1flg & ZCACK1)
 					exec2(secbuf);
@@ -1717,7 +1718,7 @@ nxthdr:
 		}
 #endif
 	skip_oosb:
-		c = zgethdr(Rxhdr, 0, NULL);
+		c = zgethdr(Rxhdr, 0, NULL, &config);
 		switch (c) {
 		default:
 			lrzsz_syslog(LOG_NOTICE, zi, "zgethdr returned %d", c);
@@ -2035,7 +2036,7 @@ exec2(const char *s)
 {
 	if (*s == '!')
 		++s;
-	io_mode(0,0);
+	lrzsz_iomode(0,LRZSZ_IOMODE_RESET, &config);
 	execl("/bin/sh", "sh", "-c", s, NULL);
 	zpfatal("execl");
 	exit(1);

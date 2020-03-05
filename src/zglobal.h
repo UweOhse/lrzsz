@@ -24,6 +24,7 @@
 */
 
 #include "config.h"
+#include "lrzsz.h"
 #include <sys/types.h>
 
 #ifdef __GNUC__
@@ -321,7 +322,6 @@ extern int Twostop;
 extern unsigned char checked;
 #endif
 extern int iofd;
-extern unsigned Baudrate;
 
 void zperr (const char *fmt, ...);
 void zpfatal (const char *fmt, ...);
@@ -341,9 +341,7 @@ void vstringf (const char *format, ...);
 	vstringf format_args ; } while(0)
 
 /* rbsb.c */
-int from_cu (void);
 int rdchk (int fd);
-int io_mode (int fd, int n);
 void sendbrk (int fd);
 #define flushmo() fflush(stdout)
 void purgeline (int fd);
@@ -382,7 +380,7 @@ void zshhdr (int type, char *hdr);
 void zsdata (const char *buf, size_t length, int frameend);
 void zsda32 (const char *buf, size_t length, int frameend);
 int zrdata (char *buf, int length, size_t *received);
-int zgethdr (char *hdr, int eflag, size_t *);
+int zgethdr (char *hdr, int eflag, size_t *, struct lrzsz_config *);
 void stohdr (size_t pos);
 long rclhdr (char *hdr);
 
