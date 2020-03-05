@@ -184,12 +184,16 @@ Usage: lrzsz-gen-errors [options] errspec...
 Generate errors while copying from stdin to stdout.
 
 errspec... is a series of errspecs.
-An errspec consists of two or more elements, separated by colons: C:n[:m].
+An errspec consists of two or more elements, separated by colons: C:N[:M].
 
 C is either:
   a number: set the byte to that number (0..255).
-  r or R: switch some random bit.
-  b0 to b7: switch that bit (b with a digit).
+  r: set the byte to some value.
+  b^0 to b^7: switch that bit (b ^ digit).
+  b+0 to b+7: set that bit (b + digit).
+  b-0 to b-7: delete that bit (b + digit).
+     you may use r instead of the bit number to apply that operation to
+     some random bit (b^r inverts a random bit).
 
 n is a number, denoting the distance to the error, and 
 m is another number, describing a random range of bytes where the error will 
@@ -201,11 +205,11 @@ restart at the first errspec.
 Examples:
 lrzsz-gen-errors 0:1024 255:1024
     will set byte 1024 to 0, 2048 to 255, 3072 to 0, ...
-lrzsz-gen-errors b7:512
+lrzsz-gen-errors b^7:512
     will switch bit 7 on every 512th byte.
 lrzsz-gen-errors r:512:8192
-    will switch a random bit in a random byte of the 8192 byte following 
-    the next 512 bytes.
+    will set one of the 8192 byte following the next 512 bytes
+    to a random value.
 	`)
 }
 func main() {
