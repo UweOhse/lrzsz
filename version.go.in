@@ -1,0 +1,9 @@
+package main
+
+var Package string = "@PACKAGE@" // lrzsz
+var PackageBugreport string = "@PACKAGE_BUGREPORT@" // uwe@ohse.de
+var PackageName string = "@PACKAGE_NAME@" // GNU lrzsz
+var PackageVersion string = "@VERSION@" // lrzsz-0.13.0-alpha
+var PackageURL string = "@PACKAGE_URL@" // https://ohse.de and so on
+var Build string // the linker sets this from git head
+

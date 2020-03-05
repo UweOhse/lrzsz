@@ -169,8 +169,8 @@ AM_GNU_GETTEXT_VERSION
 
 dnl AC_DEFINE_UNQUOTED(LOCALEDIR,"$prefix/$DATADIRNAME",[The name of the directory for locale stuff])
 
-AC_CONFIG_FILES([Makefile lib/Makefile \
-man/Makefile po/Makefile.in src/Makefile \
+AC_CONFIG_FILES([Makefile lib/Makefile man/Makefile po/Makefile.in src/Makefile \
+version.go \
 src/lrzszbug])
 AC_CONFIG_COMMANDS([default],[
 test -z "$CONFIG_HEADERS" || echo timestamp > stamp-h],[])

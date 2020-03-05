@@ -98,11 +98,11 @@ func parseSpecs(args []string) {
 		i:=strings.Index(a,":")
 		if -1==i {
 			fmt.Fprintf(os.Stderr, "bad specification %s: no colon.\n",a)
-			os.Exit(2)
+			usageError()
 		}
 		if 0==i {
 			fmt.Fprintf(os.Stderr, "bad specification %s: colon at start.\n",a)
-			os.Exit(2)
+			usageError()
 		}
 		p1:=a[:i]
 		if p1=="r" || p1=="R" {
@@ -110,6 +110,7 @@ func parseSpecs(args []string) {
 		} else if (p1[0]=='b') {
 			if len(p1)<3 {
 				fmt.Fprintf(os.Stderr, "bad specification %s: incomplete.\n",a)
+				usageError()
 			}
 			if p1[1]=='+' {
 				S.bitset=true
@@ -119,13 +120,13 @@ func parseSpecs(args []string) {
 				S.bitinv=true
 			} else {
 				fmt.Fprintf(os.Stderr, "bad specification %s: bad bit operation.\n",a)
-				os.Exit(2)
+				usageError()
 			}
 			if p1[2]!='r' {
 				t, err:=strconv.ParseUint(p1[2:],10,64)
 				if err != nil || t>7{
 					fmt.Fprintf(os.Stderr, "bad specification %s: bad bit number.\n",a)
-					os.Exit(2)
+					usageError()
 				}
 				S.bit=new(uint8)
 				*S.bit=uint8(t)
@@ -134,7 +135,7 @@ func parseSpecs(args []string) {
 			t, err:=strconv.ParseUint(p1,10,64)
 			if err != nil || t>255{
 				fmt.Fprintf(os.Stderr, "bad specification %s: bad value.\n",a)
-				os.Exit(2)
+				usageError()
 			}
 			S.value=new(uint8)
 			*S.value=uint8(t)
@@ -144,27 +145,27 @@ func parseSpecs(args []string) {
 		i=strings.Index(b,":")
 		if 0==i {
 			fmt.Fprintf(os.Stderr, "bad specification %s: double colon.\n",a)
-			os.Exit(2)
+			usageError()
 		} else if i>0 {
 			p2:=b[:i]
 			p3:=b[i+1:]
 			t, err:=strconv.ParseUint(p2,10,64)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "bad specification %s: bad offset.\n",a)
-				os.Exit(2)
+				usageError()
 			}
 			S.offset=t
 			t, err=strconv.ParseUint(p3,10,64)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "bad specification %s: bad length.\n",a)
-				os.Exit(2)
+				usageError()
 			}
 			S.length=t
 		} else {
 			t, err:=strconv.ParseUint(b,10,64)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "bad specification %s: bad offset.\n",a)
-				os.Exit(2)
+				usageError()
 			}
 			S.offset=t
 			S.length=0
@@ -178,7 +179,11 @@ func parseSpecs(args []string) {
 	}
 
 }
-func usage() {
+func usageError() {
+	fmt.Fprintf(os.Stderr, "Try %s --help for more information.\n")
+	os.Exit(2)
+}
+func showHelp() {
 	fmt.Print(`
 Usage: lrzsz-gen-errors [options] errspec...
 Generate errors while copying from stdin to stdout.
@@ -212,15 +217,23 @@ lrzsz-gen-errors r:512:8192
     to a random value.
 	`)
 }
+func showVersion() {
+	fmt.Printf("inserterrors (%s) %s [git %s]\n",PackageName,PackageVersion,Build)
+	fmt.Printf(
+`(C) 2020+ Uwe Ohse, <uwe@ohse.de>.
+License: GNU GPL version 2.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+`)
+}
 func main() {
 	flag.Parse()
 	if versionOption {
-		fmt.Printf("lrzsz-gen-errors (GNU lrzsz) 0.0.0\n")
-		fmt.Printf("(C) 2020 bla\n")
+		showVersion()
 		os.Exit(0)
 	}
 	if helpOption {
-		usage()
+		showHelp()
 		os.Exit(0)
 	}
 	bufsize:=65536
@@ -232,7 +245,7 @@ func main() {
 		// fmt.Fprintf(os.Stderr, "read returned %d %v\n", n, err);
 		if err != nil {
 			if err != io.EOF {
-				fmt.Fprintf(os.Stderr,"read: %s\n");
+				fmt.Fprintf(os.Stderr,"failed to read: %s\n");
 				os.Exit(1);
 			}
 		}
@@ -242,7 +255,7 @@ func main() {
 			_, err2:=os.Stdout.Write(buf)
 			// fmt.Fprintf(os.Stderr, "write returned %d %v\n", m, err2);
 			if err2 != nil {
-				fmt.Fprintf(os.Stderr,"write: %s\n");
+				fmt.Fprintf(os.Stderr,"failed to write: %s\n");
 				os.Exit(1);
 			}
 
