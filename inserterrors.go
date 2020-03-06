@@ -29,6 +29,7 @@ type spec struct {
 	bitinv bool
 	bit    *uint8
 	value  *uint8
+	insert []byte
 }
 
 var specs []spec
@@ -70,6 +71,7 @@ func errorMaker(c byte) byte {
 func errorMakerLoop(buf []byte, n uint64) []byte {
 	var i uint64
 	for {
+		insertlen:=uint64(len(curspec.insert))
 		if curspec.end {
 			return buf
 		}
@@ -84,6 +86,10 @@ func errorMakerLoop(buf []byte, n uint64) []byte {
 		if curspec.del {
 			buf=append(buf[:i],buf[i+1:]...)
 			n--
+		} else if insertlen>0 {
+			buf=append(buf[:i],append(curspec.insert, buf[i:]...)...)
+			n+=insertlen
+			i+=insertlen
 		} else {
 			old:=buf[i]
 			buf[i]=errorMaker(buf[i])
@@ -108,6 +114,8 @@ func errorMakerLoop(buf []byte, n uint64) []byte {
 func parseSpecs(args []string) {
 	specs=make([]spec,0)
 	for _, a := range args {
+		var b string
+		var p1 string
 		var S spec
 		if a == "end" {
 			S.end=true
@@ -115,19 +123,23 @@ func parseSpecs(args []string) {
 			continue
 		}
 		i:=strings.Index(a,":")
-		if -1==i {
-			fmt.Fprintf(os.Stderr, "bad specification %s: no colon.\n",a)
-			usageError()
-		}
 		if 0==i {
 			fmt.Fprintf(os.Stderr, "bad specification %s: colon at start.\n",a)
 			usageError()
 		}
-		p1:=a[:i]
+		if -1==i {
+			// fmt.Fprintf(os.Stderr, "bad specification %s: no colon.\n",a)
+			// usageError()
+			p1=a;
+		} else {
+			p1=a[:i]
+		}
 		if p1=="r" || p1=="R" {
 			S.rand=true
 		} else if (p1=="-") {
 			S.del=true
+		} else if (p1[0]=='+') {
+			S.insert=[]byte(p1[1:])
 		} else if (p1[0]=='b') {
 			if len(p1)<3 {
 				fmt.Fprintf(os.Stderr, "bad specification %s: incomplete.\n",a)
@@ -161,7 +173,11 @@ func parseSpecs(args []string) {
 			S.value=new(uint8)
 			*S.value=uint8(t)
 		}
-		b:=a[i+1:]
+		if -1==i {
+			b="0"
+		} else {
+			b=a[i+1:]
+		}
 
 		i=strings.Index(b,":")
 		if 0==i {
@@ -201,7 +217,7 @@ func parseSpecs(args []string) {
 
 }
 func usageError() {
-	fmt.Fprintf(os.Stderr, "Try %s --help for more information.\n")
+	fmt.Fprintf(os.Stderr, "Try inserterrors --help for more information.\n")
 	os.Exit(2)
 }
 func showHelp() {
@@ -210,7 +226,7 @@ Usage: lrzsz-gen-errors [options] errspec...
 Generate errors while copying from stdin to stdout.
 
 errspec... is a series of errspecs.
-An errspec consists of two or more elements, separated by colons: C:N[:M] , 
+An errspec consists of two or more elements, separated by colons: C[:N[:M]] ,
 or an "end" string, to end the program.
 
 C is either:
@@ -222,11 +238,12 @@ C is either:
      you may use r instead of the bit number to apply that operation to
      some random bit (b^r inverts a random bit).
   -: delete the byte
-     In case want to delete more than one byte, use -:0 repeatedly.
+     In case want to delete more than one byte, use - repeatedly.
+  +ABC: inserts the string.
 
-n is a number, denoting the distance to the error, and 
-m is another number, describing a random range of bytes where the error will 
-happen. n in that case describes the start of the range, m the length.
+N is a number, denoting the distance to the error, and default to 0.
+M is another number, describing a random range of bytes where the error will 
+happen. N in that case describes the start of the range, M the length.
 
 If the end of the errspecs is reached before input ended, the program will 
 restart at the first errspec.
@@ -276,8 +293,10 @@ func main() {
 				os.Exit(1);
 			}
 		}
+		buf=buf[:n]
 		if n!=0 {
-			errorMakerLoop(buf,uint64(n))
+			buf=errorMakerLoop(buf,uint64(n))
+			n=len(buf)
 			buf=buf[:n]
 			_, err2:=os.Stdout.Write(buf)
 			// fmt.Fprintf(os.Stderr, "write returned %d %v\n", m, err2);
