@@ -140,6 +140,7 @@ bibi(int n)
 static struct option const long_options[] =
 {
 	{"append", no_argument, NULL, '+'},
+	{"twostop", no_argument, NULL, '2'},
 	{"ascii", no_argument, NULL, 'a'},
 	{"binary", no_argument, NULL, 'b'},
 	{"bufsize", required_argument, NULL, 'B'},
@@ -233,6 +234,7 @@ main(int argc, char *argv[])
 		case 0:
 			break;
 		case '+': Lzmanag = ZF1_ZMAPND; break;
+		case '2': config.io.two_stopbits = TRUE; break;
 		case 'a': Rxascii=TRUE;  break;
 		case 'b': Rxbinary=TRUE; break;
 		case 'B': 
@@ -495,6 +497,7 @@ usage(int exitcode, const char *what)
 		),f);
 	fputs(_(
 "  -+, --append                append to existing files\n"
+"  -2, --twostop               use 2 stop bits (you usually do not want to)\n"
 "  -a, --ascii                 ASCII transfer (change CR/LF to LF)\n"
 "  -b, --binary                binary transfer\n"
 "  -B, --bufsize N             buffer N bytes (N==auto: buffer whole file)\n"
