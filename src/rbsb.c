@@ -43,9 +43,6 @@ long Locbit = LLITOUT;	/* Bit SUPPOSED to disable output translations */
 #include <sys/ioctl.h>
 #endif
 
-int Twostop;		/* Use two stop bits */
-
-
 #ifdef READCHECK_FIONREAD
 /*
  *  Return non 0 if something to read from io descriptor f

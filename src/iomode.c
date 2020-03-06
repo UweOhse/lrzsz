@@ -63,7 +63,7 @@ lrzsz_iomode(int fd, int n, struct lrzsz_config *cf)
 
 		tty.c_cflag &= ~PARENB;	/* Disable parity */
 		tty.c_cflag |= CS8;	/* Set character size = 8 */
-		if (Twostop)
+		if (cf->io.two_stopbits)
 			tty.c_cflag |= CSTOPB;	/* Set two stop bits */
 
 #ifdef READCHECK
@@ -111,7 +111,7 @@ lrzsz_iomode(int fd, int n, struct lrzsz_config *cf)
 		/* Set character size = 8 */
 		tty.c_cflag &= ~(CSIZE);
 		tty.c_cflag |= CS8;	
-		if (Twostop)
+		if (cf->io.two_stopbits)
 			tty.c_cflag |= CSTOPB;	/* Set two stop bits */
 		tty.c_cc[VMIN] = 1; /* This many chars satisfies reads */
 		tty.c_cc[VTIME] = 1;	/* or in this many tenths of seconds */

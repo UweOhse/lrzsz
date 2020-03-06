@@ -318,7 +318,7 @@ main(int argc, char **argv)
 		case 0:
 			break;
 		case '+': Lzmanag = ZF1_ZMAPND; break;
-		case '2': Twostop = TRUE; break;
+		case '2': config.io.two_stopbits = TRUE; break;
 		case '8':
 			if (max_blklen==8192)
 				start_blklen=8192;

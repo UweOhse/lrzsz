@@ -21,7 +21,7 @@ enum lrzsz_protocol_enum {
 	LRZSZ_ZMODEM
 };
 struct lrzsz_io_config {
-	int twostopbits; // true: use two stop bits
+	int two_stopbits; // true: use two stop bits
 
 	int may_use_stderr; // stderr is not connected to stdin or stdout.
 };
