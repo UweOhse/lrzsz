@@ -23,6 +23,7 @@ type spec struct {
 	length uint64
 	rand   bool // bit ignored
 	end    bool
+	del    bool
 	bitset bool
 	bitdel bool
 	bitinv bool
@@ -80,10 +81,16 @@ func errorMakerLoop(buf []byte, n uint64) []byte {
 			return buf
 		}
 		i+=togo
-		old:=buf[i]
-		buf[i]=errorMaker(buf[i])
-		if verboseOption {
-			fmt.Fprintf(os.Stderr, "changed %v to %v at %v\n",old,buf[i],totalPos+i)
+		if curspec.del {
+			buf=append(buf[:i],buf[i+1:]...)
+			n--
+		} else {
+			old:=buf[i]
+			buf[i]=errorMaker(buf[i])
+			if verboseOption {
+				fmt.Fprintf(os.Stderr, "changed %v to %v at %v\n",old,buf[i],totalPos+i)
+			}
+			i++;
 		}
 
 		specidx++
@@ -92,7 +99,6 @@ func errorMakerLoop(buf []byte, n uint64) []byte {
 		}
 		curspec=&specs[specidx]
 		togo=curspec.offset
-		i++;
 		if curspec.length>0 {
 			togo+=uint64(rand.Int63n(int64(curspec.length)))
 		}
@@ -120,6 +126,8 @@ func parseSpecs(args []string) {
 		p1:=a[:i]
 		if p1=="r" || p1=="R" {
 			S.rand=true
+		} else if (p1=="-") {
+			S.del=true
 		} else if (p1[0]=='b') {
 			if len(p1)<3 {
 				fmt.Fprintf(os.Stderr, "bad specification %s: incomplete.\n",a)
@@ -213,6 +221,8 @@ C is either:
   b-0 to b-7: delete that bit (b + digit).
      you may use r instead of the bit number to apply that operation to
      some random bit (b^r inverts a random bit).
+  -: delete the byte
+     In case want to delete more than one byte, use -:0 repeatedly.
 
 n is a number, denoting the distance to the error, and 
 m is another number, describing a random range of bytes where the error will 
