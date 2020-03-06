@@ -68,8 +68,11 @@ func errorMaker(c byte) byte {
 func errorMakerLoop(buf []byte, n uint64) []byte {
 	var i uint64
 	for {
-		if n-i<togo {
+		if i+togo>=n {
 			togo-=n-i
+			return buf
+		}
+		if i==n {
 			return buf
 		}
 		i+=togo
@@ -85,6 +88,7 @@ func errorMakerLoop(buf []byte, n uint64) []byte {
 		}
 		curspec=&specs[specidx]
 		togo=curspec.offset
+		i++;
 		if curspec.length>0 {
 			togo+=uint64(rand.Int63n(int64(curspec.length)))
 		}
