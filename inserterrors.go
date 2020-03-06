@@ -22,6 +22,7 @@ type spec struct {
 	offset uint64
 	length uint64
 	rand   bool // bit ignored
+	end    bool
 	bitset bool
 	bitdel bool
 	bitinv bool
@@ -68,6 +69,9 @@ func errorMaker(c byte) byte {
 func errorMakerLoop(buf []byte, n uint64) []byte {
 	var i uint64
 	for {
+		if curspec.end {
+			return buf
+		}
 		if i+togo>=n {
 			togo-=n-i
 			return buf
@@ -99,6 +103,11 @@ func parseSpecs(args []string) {
 	specs=make([]spec,0)
 	for _, a := range args {
 		var S spec
+		if a == "end" {
+			S.end=true
+			specs=append(specs,S)
+			continue
+		}
 		i:=strings.Index(a,":")
 		if -1==i {
 			fmt.Fprintf(os.Stderr, "bad specification %s: no colon.\n",a)
@@ -193,7 +202,8 @@ Usage: lrzsz-gen-errors [options] errspec...
 Generate errors while copying from stdin to stdout.
 
 errspec... is a series of errspecs.
-An errspec consists of two or more elements, separated by colons: C:N[:M].
+An errspec consists of two or more elements, separated by colons: C:N[:M] , 
+or an "end" string, to end the program.
 
 C is either:
   a number: set the byte to that number (0..255).
@@ -218,7 +228,10 @@ lrzsz-gen-errors b^7:512
     will switch bit 7 on every 512th byte.
 lrzsz-gen-errors r:512:8192
     will set one of the 8192 byte following the next 512 bytes
-    to a random value.
+    to a random value, and will repeat that.
+lrzsz-gen-errors r:512:8192 end
+    will set one of the 8192 byte following the next 512 bytes
+    to a random value, and will NOT repeat that.
 	`)
 }
 func showVersion() {
