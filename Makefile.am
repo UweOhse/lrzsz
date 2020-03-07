@@ -5,14 +5,7 @@ ACLOCAL_AMFLAGS=-I m4
 PR=@PACKAGE@-@VERSION@
 CLEAN_FILES=fastcheck.done
 BUILD=`git rev-parse HEAD`
-noinst_PROGRAMS=inserterrors
 
-go_ldflags=-ldflags "-X main.Build=${BUILD}"
-GOCMD=go
-GOBUILD=$(GOCMD) build $(go_ldflags)
-
-inserterrors: inserterrors.go version.go
-	$(GOBUILD) -o $@ $^
 oldcheck-local:
 	QUIET=-q $(srcdir)/check.lrzsz $(srcdir) `pwd`	
 
