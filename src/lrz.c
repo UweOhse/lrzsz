@@ -151,7 +151,6 @@ static struct option const long_options[] =
 	{"help", no_argument, NULL, 'h'},
 	{"crc-check", no_argument, NULL, 'H'},
 	{"junk-path", no_argument, NULL, 'j'},
-	{"errors", required_argument, NULL, 3},
 	{"disable-timeouts", no_argument, NULL, 'O'},
 	{"disable-timeout", no_argument, NULL, 'O'}, /* i can't get it right */
 	{"min-bps", required_argument, NULL, 'm'},
@@ -373,14 +372,6 @@ main(int argc, char *argv[])
 			}
 			break;
 #endif
-		case 3:
-			s_err = xstrtoul (optarg, NULL, 0, &tmp, "km");
-			bytes_per_error = tmp;
-			if (s_err != LONGINT_OK)
-				STRTOL_FATAL_ERROR (optarg, _("bytes_per_error"), s_err);
-			if (bytes_per_error<100)
-				usage(2,_("bytes-per-error should be >100"));
-			break;
         	case 4:
 			s_err = xstrtoul (optarg, NULL, 0, &tmp, NULL);
 			startup_delay = tmp;

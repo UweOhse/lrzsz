@@ -57,7 +57,6 @@ char Attn[ZATTNLEN+1];	/* Attention string rx sends to tx on err */
 
 static char lastsent;	/* Last char we sent */
 int turbo_escape;
-int bytes_per_error=0;
 
 static const char *frametypes[] = {
 	"Carrier Lost",		/* -3 */

@@ -356,7 +356,6 @@ extern long cr3tab[];
 /* zm.c */
 #include "zmodem.h"
 extern unsigned int Rxtimeout;        /* Tenths of seconds to wait for something */
-extern int bytes_per_error;  /* generate one error around every x bytes */
 
 /* Globals used by ZMODEM functions */
 extern int Rxframeind;     /* ZBIN ZBIN32, or ZHEX type of frame received */

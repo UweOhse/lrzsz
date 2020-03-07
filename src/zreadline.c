@@ -84,18 +84,6 @@ readline_internal(unsigned int timeout)
 	readline_left=read(readline_fd, readline_ptr, readline_readnum);
 	if (!no_timeout)
 		alarm(0);
-	if (readline_left>0 && bytes_per_error) {
-		static long ct=0;
-		static int mod=1;
-		ct+=readline_left;
-		while (ct>bytes_per_error) {
-			readline_ptr[ct % bytes_per_error]^=mod;
-			ct-=bytes_per_error;
-			mod++;
-			if (mod==256)
-				mod=1;
-		}
-	}
 	if (Verbose > 5) {
 		vstringf("Read returned %d bytes\n", readline_left);
 		if (readline_left==-1)
