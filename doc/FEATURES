@@ -1,0 +1,90 @@
+State of optional features:
+
+CANFDX  - implemented as in the original (*1)
+        The receiver can receive/send in fullduplex, and the sender assumes that, anyway.
+CANOVIO - implemented as in the original (*1)
+	The receiver can receive data during disk I/O, and the sender assumes that, anyway.
+CANBRK  - implemented as in the original (*1)
+	The receiver can send a break signal, and the sender assumes that, anyway.
+
+CANCRY	- not implemented
+        That feature bit (0x08) was later reused by omen for the RLE thing.
+
+CANRLE	- not implemented (*1)
+	as far as i can tell the feature was never documented, and also was not in wide
+	use. The only implementations using it, that i know about, were GSZ and DSZ, both
+	by chuck forsberg.
+	
+	Implementing it seems to be useless, anyway. RLE may be of some use with 
+	uncompressed text files containing lots of repeating characters, but that's it.
+	Not worth the pain.
+
+CANLZW	- not implemented (*1)
+	Haven't seen this in the wild.
+
+CANFC32 - of course.
+	This is the default, anyway.
+
+ESCCTL	- yes
+	lsz can escape all control characters.
+	
+ESC8	- not implemented (*1)
+ 	I've never seen this anywhere.
+
+ZRRQWN	- not implemented (*1)
+	This feature would allow the receiver to specify the senders window sizes.
+	I do see a use for that.
+	Also this would need VHDRs.
+
+ZRRQQQ	- not implemented (*1)
+	This feature would allow the receiver to specify which control chars to
+	escape. Really, who would want to do that?
+	- It's not needed. The option to escape all control characters still exists,
+	  so ZRRQQQ would at best save some bytes.
+	- It's not documented anywhere (though is easy to guess how this works).
+	- Who *knows* which control chars need escaping? Usually one only knows that
+	  *something* is broken, and just escape the whole range (which is the
+	  sensible thing to do, unless one really knows something about the problem).
+	This needs VHDRs, too.
+
+VHDRs	- not implemented (*1)
+	This feature would allow to send variable length headers, but fail to see a
+	real use case for that. Only two features in ZModem need longer headers:
+	- receiver specified window sizes (ZRRQWN)
+	- receiver specified control char escape masks (ZRRQQQ).
+	VHDR usage is not documented.
+
+ZSTDERR	- not implemented (*1)
+	Why would one want to send a file, possibly a core dump, to the receivers
+	stderr channel? To file up the log files?
+
+ZCHALLENGE
+	the sender answers, as specified.
+	The feature is completely stupid, though. A receiver sends a 32bit number,
+	and receives it back. It doesn't give the sender any useful information,
+	and it's the sender who controls the information. Well.
+
+ZFREECNT
+	Dummy implementation - the receiver answer with 2^31 bytes. The sender has
+	no right to get this this information, and it never ask for it.
+
+ZCOMMAND (implemented, returns ERROR)
+	The feature to let the sender execute a command at the receivers site 
+	is implemented by returning an error.
+
+	In earlier versions (0.12.x) it would execute commands, if the receiver 
+	has been configured to allow that.
+	In even earlier versions, including the public domain implementation
+	by omen, it executed all commands.
+	
+	Random note: this feature never ever was implemented totally correct 
+	anywhere ("correct" as in "as specified", not in "securely"). No unix
+	implementation of rz could ever answer with ZCOMPL *after* the command 
+	was executed was, since each single one used exec().
+
+	Random note: omen rz "limited" that feature, too - in "registered"
+	versions only.
+
+Notes:
+*1	The original sources always indicated that bit in the the receivers
+	caps, and always ignored that bit in the sender.
