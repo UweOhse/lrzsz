@@ -386,5 +386,9 @@ void lsyslog (int, const char *,...);
 void lrzsz_syslog(int, struct zm_fileinfo *, const char *, ...);
 int parse_syslog_facility(const char *s);
 
+void * xmalloc (size_t sz);
+char * xstrdup (char const *str);;
+
 
 #endif
+
