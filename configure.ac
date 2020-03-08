@@ -141,7 +141,6 @@ dnl Checks for library functions.
 
 dnl suggested by autoscan, but not really needed.
 dnl AC_FUNC_UTIME_NULL
-AC_FUNC_MMAP
 AC_FUNC_ALLOCA
 AC_EGREP_HEADER([struct.*utimbuf], utime.h, AC_DEFINE(HAVE_STRUCT_UTIMBUF))
 
