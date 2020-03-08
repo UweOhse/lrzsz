@@ -794,7 +794,7 @@ wcsend (int argc, char *argp[])
 	else if (protocol != ZM_XMODEM) {
 		struct zm_fileinfo zi;
 		char *pa;
-		pa=alloca(PATH_MAX+1);
+		pa=xmalloc(PATH_MAX+1);
 		*pa='\0';
 		zi.fname = pa;
 		zi.modtime = 0;
@@ -804,6 +804,7 @@ wcsend (int argc, char *argp[])
 		zi.bytes_received = 0;
 		zi.bytes_skipped = 0;
 		wctxpn (&zi);
+		free(pa);
 	}
 	return OK;
 }
@@ -832,13 +833,13 @@ wcs(const char *oname, const char *remotename)
 				_("security violation: not allowed to upload from %s"),oname);
 		}
 	}
-	
+
 	if (0==strcmp(oname,"-")) {
 		char *p=getenv("ONAME");
-		name=alloca(PATH_MAX+1);
 		if (p) {
-			strcpy(name, p);
+			name=xstrdup(p);
 		} else {
+			name=xmalloc(PATH_MAX+1);
 			sprintf(name, "s%lu.lsz", (unsigned long) getpid());
 		}
 		input_f=stdin;
@@ -848,9 +849,9 @@ wcs(const char *oname, const char *remotename)
 		++errcnt;
 		return OK;	/* pass over it, there may be others */
 	} else {
-		name=alloca(PATH_MAX+1);
-		strcpy(name, oname);
+		name=xstrdup(oname);
 	}
+
 	if (1) {
 		static char *s=NULL;
 		static size_t last_length=0;
@@ -898,6 +899,7 @@ wcs(const char *oname, const char *remotename)
 #endif
 		error(0,0, _("is not a file: %s"),name);
 		fclose(input_f);
+		free(name);
 		return OK;
 	}
 
@@ -928,12 +930,15 @@ wcs(const char *oname, const char *remotename)
 	switch (wctxpn(&zi)) {
 	case ERROR:
 		lrzsz_syslog(LOG_INFO, &zi, _("error occured"));
+		free(name);
 		return ERROR;
 	case ZSKIP:
 		lrzsz_syslog(LOG_INFO, &zi, _("skipped"));
 		error(0,0, _("skipped: %s"),name);
+		free(name);
 		return OK;
 	}
+	free(name);
 	if (!zmodem_requested && wctx(&zi)==ERROR)
 	{
 		lrzsz_syslog(LOG_INFO, &zi, _("error occured"));
@@ -990,7 +995,7 @@ wctxpn(struct zm_fileinfo *zi)
 		}
 
 	q = (char *) 0;
-	if (Dottoslash) {		/* change . to . */
+	if (Dottoslash) {		/* change . to / */
 		for (p=zi->fname; *p; ++p) {
 			if (*p == '/')
 				q = p;
