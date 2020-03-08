@@ -27,11 +27,7 @@
 
 #include <sys/types.h>
 
-
-
-#ifdef USE_TERMIOS
-struct termios oldtty, tty;
-#endif
+static struct termios oldtty;
 
 
 /*
@@ -45,6 +41,7 @@ int
 lrzsz_iomode(int fd, int n, struct lrzsz_config *cf)
 {
 	static int did0 = FALSE;
+	struct termios tty;
 
 	lrzsz_syslog(LOG_DEBUG,NULL,"iomode: %d",n);
 

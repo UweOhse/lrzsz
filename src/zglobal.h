@@ -116,49 +116,8 @@ char *strchr (), *strrchr ();
 #  endif
 #endif
 
-/* used to use #elif, but native braindead hpux 9.00 c compiler didn't 
- * understand it */
-#ifdef HAVE_TERMIOS_H
-/* get rid of warnings on SCO ODT 3.2 */
-struct termios;
-# include <termios.h>
-# define USE_TERMIOS
-#else
-# if defined(HAVE_SYS_TERMIOS_H)
-#  include <sys/termios.h>
-#  define USE_TERMIOS
-# else
-#  if defined(HAVE_TERMIO_H)
-#   include <termio.h>
-#   define USE_TERMIO
-#  else
-#   if defined(HAVE_SYS_TERMIO_H)
-#    include <sys/termio.h>
-#    define USE_TERMIO
-#   else
-#    if defined(HAVE_SGTTY_H)
-#     include <sgtty.h>
-#     define USE_SGTTY
-#     ifdef LLITOUT
-       extern long Locmode;		/* Saved "local mode" for 4.x BSD "new driver" */
-       extern long Locbit;	/* Bit SUPPOSED to disable output translations */
-#     endif
-#    else
-#     error neither termio.h nor sgtty.h found. Cannot continue.
-#    endif
-#   endif
-#  endif
-# endif
-#endif
+#include <termios.h>
 
-#ifdef USE_SGTTY
-#  ifdef TIOCSBRK
-#    define CANBREAK
-#  endif
-#endif
-#ifdef USE_TERMIO
-#  define CANBREAK
-#endif
 
 
 

@@ -131,9 +131,9 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = $(DEPDIR)/vasprintf.Po ./$(DEPDIR)/alloca.Po \
-	./$(DEPDIR)/error.Po ./$(DEPDIR)/long-options.Po \
-	./$(DEPDIR)/xstrtol.Po ./$(DEPDIR)/xstrtoul.Po
+am__depfiles_remade = $(DEPDIR)/vasprintf.Po ./$(DEPDIR)/error.Po \
+	./$(DEPDIR)/long-options.Po ./$(DEPDIR)/xstrtol.Po \
+	./$(DEPDIR)/xstrtoul.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -185,10 +185,9 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in \
-	$(top_srcdir)/build-aux/depcomp alloca.c vasprintf.c
+	$(top_srcdir)/build-aux/depcomp vasprintf.c
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
-ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
@@ -329,8 +328,8 @@ EXTRA_DIST = alloca.c \
 	vasprintf.c
 
 libzmodem_a_SOURCES = long-options.c xstrtol.c xstrtoul.c error.c 
-libzmodem_a_LIBADD = @LIBOBJS@ @ALLOCA@
-libzmodem_a_DEPENDENCIES = @ALLOCA@ @LIBOBJS@
+libzmodem_a_LIBADD = @LIBOBJS@
+libzmodem_a_DEPENDENCIES = @LIBOBJS@
 noinst_HEADERS = getopt.h long-options.h xstrtol.h xstrtoul.h error.h
 all: all-am
 
@@ -381,7 +380,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/vasprintf.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alloca.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/error.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/long-options.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xstrtol.Po@am__quote@ # am--include-marker
@@ -546,7 +544,6 @@ clean-am: clean-generic clean-libtool clean-noinstLIBRARIES \
 
 distclean: distclean-am
 		-rm -f $(DEPDIR)/vasprintf.Po
-	-rm -f ./$(DEPDIR)/alloca.Po
 	-rm -f ./$(DEPDIR)/error.Po
 	-rm -f ./$(DEPDIR)/long-options.Po
 	-rm -f ./$(DEPDIR)/xstrtol.Po
@@ -597,7 +594,6 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f $(DEPDIR)/vasprintf.Po
-	-rm -f ./$(DEPDIR)/alloca.Po
 	-rm -f ./$(DEPDIR)/error.Po
 	-rm -f ./$(DEPDIR)/long-options.Po
 	-rm -f ./$(DEPDIR)/xstrtol.Po

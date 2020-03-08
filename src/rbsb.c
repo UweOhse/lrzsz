@@ -32,13 +32,6 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#ifdef USE_SGTTY
-#  ifdef LLITOUT
-long Locmode;		/* Saved "local mode" for 4.x BSD "new driver" */
-long Locbit = LLITOUT;	/* Bit SUPPOSED to disable output translations */
-#  endif
-#endif
-
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
@@ -102,19 +95,10 @@ rdchk(int fd)
 void
 sendbrk(int fd)
 {
-#ifdef USE_TERMIOS
+#ifdef HAVE_TCSENDBREAK
 	tcsendbreak(fd,0);
-#endif
-#ifdef USE_TERMIO
+#elif defined(TCSBRK)
 	ioctl(fd, TCSBRK, 0);
-#endif
-#ifdef USE_SGTTY
-#ifdef TIOCSBRK
-	sleep(1);
-	ioctl(fd, TIOCSBRK, 0);
-	sleep(1);
-	ioctl(fd, TIOCCBRK, 0);
-#endif
 #endif
 }
 

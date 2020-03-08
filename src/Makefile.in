@@ -110,7 +110,7 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = iomode.$(OBJEXT) baudrate.$(OBJEXT) \
-	check_stderr.$(OBJEXT)
+	check_stderr.$(OBJEXT) utils.$(OBJEXT)
 am_lrz_OBJECTS = lrz.$(OBJEXT) timing.$(OBJEXT) zperr.$(OBJEXT) \
 	zreadline.$(OBJEXT) crctab.$(OBJEXT) rbsb.$(OBJEXT) \
 	zm.$(OBJEXT) protname.$(OBJEXT) lsyslog.$(OBJEXT) \
@@ -149,8 +149,8 @@ am__depfiles_remade = ./$(DEPDIR)/baudrate.Po ./$(DEPDIR)/canit.Po \
 	./$(DEPDIR)/iomode.Po ./$(DEPDIR)/lrz.Po \
 	./$(DEPDIR)/lsyslog.Po ./$(DEPDIR)/lsz.Po \
 	./$(DEPDIR)/protname.Po ./$(DEPDIR)/rbsb.Po \
-	./$(DEPDIR)/timing.Po ./$(DEPDIR)/zm.Po ./$(DEPDIR)/zperr.Po \
-	./$(DEPDIR)/zreadline.Po
+	./$(DEPDIR)/timing.Po ./$(DEPDIR)/utils.Po ./$(DEPDIR)/zm.Po \
+	./$(DEPDIR)/zperr.Po ./$(DEPDIR)/zreadline.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -201,7 +201,6 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/lrzszbug.in \
 	$(top_srcdir)/build-aux/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
-ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
@@ -335,7 +334,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-COMMON_SOURCES = iomode.c baudrate.c check_stderr.c
+COMMON_SOURCES = iomode.c baudrate.c check_stderr.c utils.c
 lrz_SOURCES = lrz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
 lsz_SOURCES = lsz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
 noinst_HEADERS = timing.h zglobal.h zmodem.h
@@ -454,6 +453,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/protname.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rbsb.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/timing.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zm.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zperr.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zreadline.Po@am__quote@ # am--include-marker
@@ -629,6 +629,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/protname.Po
 	-rm -f ./$(DEPDIR)/rbsb.Po
 	-rm -f ./$(DEPDIR)/timing.Po
+	-rm -f ./$(DEPDIR)/utils.Po
 	-rm -f ./$(DEPDIR)/zm.Po
 	-rm -f ./$(DEPDIR)/zperr.Po
 	-rm -f ./$(DEPDIR)/zreadline.Po
@@ -688,6 +689,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/protname.Po
 	-rm -f ./$(DEPDIR)/rbsb.Po
 	-rm -f ./$(DEPDIR)/timing.Po
+	-rm -f ./$(DEPDIR)/utils.Po
 	-rm -f ./$(DEPDIR)/zm.Po
 	-rm -f ./$(DEPDIR)/zperr.Po
 	-rm -f ./$(DEPDIR)/zreadline.Po

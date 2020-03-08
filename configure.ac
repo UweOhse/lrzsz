@@ -121,7 +121,6 @@ AC_HEADER_STDC
 AC_HEADER_MAJOR
 AC_CHECK_HEADERS(fcntl.h limits.h sys/ioctl.h sys/time.h unistd.h sys/times.h)
 LRZSZ_HEADERS_TERM_IO
-AC_CHECK_HEADERS(termios.h sys/termios.h termio.h sys/termio.h sgtty.h)
 AC_CHECK_HEADERS(sys/mman.h utime.h syslog.h sys/syslog.h sys/param.h)
 AC_CHECK_HEADERS(sys/select.h strings.h)
 
@@ -141,10 +140,9 @@ dnl Checks for library functions.
 
 dnl suggested by autoscan, but not really needed.
 dnl AC_FUNC_UTIME_NULL
-AC_FUNC_ALLOCA
 AC_EGREP_HEADER([struct.*utimbuf], utime.h, AC_DEFINE(HAVE_STRUCT_UTIMBUF))
 
-AC_CHECK_FUNCS(gettimeofday settimeofday)
+AC_CHECK_FUNCS(gettimeofday settimeofday tcsendbreak)
 AC_CHECK_FUNCS(memcpy select vprintf)
 AC_CHECK_FUNCS(rdchk utime syslog siginterrupt)
 AC_REPLACE_FUNCS(vasprintf)

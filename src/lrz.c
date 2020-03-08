@@ -1456,7 +1456,7 @@ tryz(void)
 		 (--n + zrqinits_received) >=0 && zrqinits_received<10; ) {
 		/* Set buffer length (0) and capability flags */
 		stohdr(0L);
-#ifdef CANBREAK
+#ifdef HAVE_TCSENDBREAK
 		Txhdr[ZF0] = CANFC32|CANFDX|CANOVIO|CANBRK;
 #else
 		Txhdr[ZF0] = CANFC32|CANFDX|CANOVIO;
