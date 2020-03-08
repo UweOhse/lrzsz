@@ -76,11 +76,6 @@ int zmodem_requested=FALSE;
 
 static char *secbuf;
 
-#ifdef ENABLE_TIMESYNC
-static int timesync_flag=0;
-static int in_timesync=0;
-#endif
-
 static int rzfiles (struct zm_fileinfo *);
 static int tryz (void);
 static void checkpath (const char *name);
@@ -153,9 +148,6 @@ static struct option const long_options[] =
 	{"restricted", no_argument, NULL, 'R'},
 	{"quiet", no_argument, NULL, 'q'},
 	{"stop-at", required_argument, NULL, 's'},
-#ifdef ENABLE_TIMESYNC
-	{"timesync", no_argument, NULL, 'S'},
-#endif
 	{"timeout", required_argument, NULL, 't'},
 	{"keep-uppercase", no_argument, NULL, 'u'},
 	{"unrestrict", no_argument, NULL, 'U'},
@@ -302,19 +294,6 @@ main(int argc, char *argv[])
 				try_resume=TRUE;  
 			break;
 		case 'R': Restricted++;  break;
-		case 'S':
-#ifdef ENABLE_TIMESYNC
-			timesync_flag++;
-			if (timesync_flag==2) {
-#ifdef HAVE_SETTIMEOFDAY
-				error(0,0,_("don't have settimeofday, will not set time\n"));
-#endif
-				if (getuid()!=0)
-					error(0,0,
-				_("not running as root (this is good!), can not set time\n"));
-			}
-#endif
-			break;
 		case 't':
 			s_err = xstrtoul (optarg, NULL, 0, &tmp, NULL);
 			Rxtimeout = tmp;
@@ -490,9 +469,6 @@ usage(int exitcode, const char *what)
 "  -r, --resume                try to resume interrupted file transfer (Z)\n"
 "  -R, --restricted            restricted, more secure mode\n"
 "  -s, --stop-at {HH:MM|+N}    stop transmission at HH:MM or in N seconds\n"
-#ifdef ENABLE_TIMESYNC
-"  -S, --timesync              request remote time (twice: set local time)\n"
-#endif
 "      --syslog[=off]          turn syslog on or off, if possible\n"
 "  -t, --timeout N             set timeout to N tenths of a second\n"
 "  -u, --keep-uppercase        keep upper case filenames\n"
@@ -946,12 +922,6 @@ procheader(char *name, struct zm_fileinfo *zi)
 	if (skip_if_not_found)
 		openmode="r+";
 
-#ifdef ENABLE_TIMESYNC
-	in_timesync=0;
-	if (timesync_flag && 0==strcmp(name,"$time$.t"))
-		in_timesync=1;
-#endif
-
 	zi->bytes_total = DEFBYTL;
 	zi->mode = 0; 
 	zi->eof_seen = 0; 
@@ -973,9 +943,6 @@ procheader(char *name, struct zm_fileinfo *zi)
 	/* Check for existing file */
 	if (zconv != ZCRESUM && !Rxclob && (zmanag&ZF1_ZMMASK) != ZF1_ZMCLOB 
 		&& (zmanag&ZF1_ZMMASK) != ZF1_ZMAPND
-#ifdef ENABLE_TIMESYNC
-	    && !in_timesync
-#endif
 		&& (fout=fopen(name, "r"))) {
 		struct stat sta;
 		char *tmpname;
@@ -1050,31 +1017,6 @@ procheader(char *name, struct zm_fileinfo *zi)
 		if ( *--p == '.')		/* zap trailing period */
 			*p = 0;
 	}
-
-#ifdef ENABLE_TIMESYNC
-	if (in_timesync)
-	{
-		long t=time(0);
-		long d=t-zi->modtime;
-		if (d<0)
-			d=0;
-		if ((Verbose && d>60) || Verbose > 1)
-			vstringf(_("TIMESYNC: here %ld, remote %ld, diff %ld seconds\n"),
-			(long) t, (long) zi->modtime, d);
-#ifdef HAVE_SETTIMEOFDAY
-		if (timesync_flag > 1 && d > 10)
-		{
-			struct timeval tv;
-			tv.tv_sec=zi->modtime;
-			tv.tv_usec=0;
-			if (settimeofday(&tv,NULL))
-				vstringf(_("TIMESYNC: cannot set time: %s\n"),
-					strerror(errno));
-		}
-#endif
-		return ERROR; /* skips file */
-	}
-#endif /* ENABLE_TIMESYNC */
 
 	if (!zmodem_requested && MakeLCPathname && !IsAnyLower(name_static)
 	  && !(zi->mode&UNIXFILE))
@@ -1420,10 +1362,6 @@ tryz(void)
 		Txhdr[ZF0] = CANFC32|CANFDX|CANOVIO|CANBRK;
 #else
 		Txhdr[ZF0] = CANFC32|CANFDX|CANOVIO;
-#endif
-#ifdef ENABLE_TIMESYNC
-		if (timesync_flag)
-			Txhdr[ZF1] |= ZF1_TIMESYNC;
 #endif
 		if (Zctlesc)
 			Txhdr[ZF0] |= TESCCTL; /* TESCCTL == ESCCTL */

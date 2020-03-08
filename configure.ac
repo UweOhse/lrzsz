@@ -32,17 +32,6 @@ esac
 changequote([, ])dnl
 
 
-AC_ARG_ENABLE(timesync,
-	[AS_HELP_STRING([--enable-timesync],[support the timesync protocol])],
-	[case "$enableval" in 
-		yes)
-			AC_DEFINE(ENABLE_TIMESYNC,1,[Define to support the timesync protocol])
-			;;
-		no) ;;
-		*) AC_MSG_ERROR([bad value $enableval for timesync option])
-	esac]
-	)
-AC_SUBST(ENABLE_TIMESYNC)
 AC_ARG_ENABLE(mkdir,
 	[--disable-mkdir   disable support for creating directories (lrz)],
 	[if test "$enableval" = "no" ; then 
