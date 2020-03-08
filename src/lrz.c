@@ -1043,7 +1043,7 @@ procheader(char *name, struct zm_fileinfo *zi)
 			}
 			/* try to rename */
 			namelen=strlen(name);
-			tmpname=alloca(namelen+5);
+			tmpname=xmalloc(namelen+5);
 			memcpy(tmpname,name,namelen);
 			ptr=tmpname+namelen;
 			*ptr++='.';
@@ -1054,10 +1054,7 @@ procheader(char *name, struct zm_fileinfo *zi)
 			if (i==1000)
 				return ERROR;
 			free(name_static);
-			name_static=malloc(strlen(tmpname)+1);
-			if (!name_static)
-				error(1,0,_("out of memory"));
-			strcpy(name_static,tmpname);
+			name_static=tmpname;
 			zi->fname=name_static;
 		}
 	}
