@@ -33,6 +33,18 @@ Future plans:
 
 - is the usage of vasprintf really needed?
 
+- go through the logging and assign severities following some rule.
+  it wasn't good before the cleanup started, but now the severities are
+  noticable bad.
+
+- split the sender in three programs.
+
+- protocol extensions?
+---- higher resolution timestamps (if i keep me release cycle, then
+     y2038 will come before the next major release).
+---- large file support (no, i don't want to send whole disks with
+     zmodem, but maybe some videos).
+
 -----------------------------------------------------------------------
 
 lrzsz is a X/Y/ZModem package built from the public-domain version of
