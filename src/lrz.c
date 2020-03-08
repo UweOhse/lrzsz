@@ -1229,18 +1229,10 @@ buffer_it:
 				last_length=buffersize;
 			/* buffer `4096' bytes pages */
 			last_length=(last_length+4095)&0xfffff000;
-			s=malloc(last_length);
-			if (!s) {
-				zpfatal(_("out of memory"));
-				exit(1);
-			}
+			s=xmalloc(last_length);
 		}
 		if (s) {
-#ifdef SETVBUF_REVERSED
-			setvbuf(fout,_IOFBF,s,last_length);
-#else
 			setvbuf(fout,s,_IOFBF,last_length);
-#endif
 		}
 	}
 	zi->bytes_received=zi->bytes_skipped;

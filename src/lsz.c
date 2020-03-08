@@ -550,11 +550,7 @@ main(int argc, char **argv)
 			zperr(_("out of memory"));
 			exit(1);
 		}
-#ifdef SETVBUF_REVERSED
-		setvbuf(stdout,_IOFBF,s,max_blklen+1024);
-#else
 		setvbuf(stdout,s,_IOFBF,max_blklen+1024);
-#endif
 	}
 	blklen=start_blklen;
 
@@ -869,18 +865,10 @@ wcs(const char *oname, const char *remotename)
 				last_length=buffersize;
 			/* buffer whole pages */
 			last_length=(last_length+4095)&0xfffff000;
-			s=malloc(last_length);
-			if (!s) {
-				zpfatal(_("out of memory"));
-				exit(1);
-			}
+			s=xmalloc(last_length);
 		}
 		if (s) {
-#ifdef SETVBUF_REVERSED
-			setvbuf(input_f,_IOFBF,s,last_length);
-#else
 			setvbuf(input_f,s,_IOFBF,last_length);
-#endif
 		}
 	}
 	vpos = 0;
