@@ -43,13 +43,6 @@ AC_ARG_ENABLE(timesync,
 	esac]
 	)
 AC_SUBST(ENABLE_TIMESYNC)
-AC_ARG_ENABLE(pubdir,
-	[--enable-pubdir=/path   include support for a public writeable directory],
-	[if test "$enableval" = "no" ; then 
-		: 
-	  else 
-	    AC_DEFINE_UNQUOTED(PUBDIR,"$enableval")
-	  fi])
 AC_ARG_ENABLE(mkdir,
 	[--disable-mkdir   disable support for creating directories (lrz)],
 	[if test "$enableval" = "no" ; then 
