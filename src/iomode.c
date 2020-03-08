@@ -43,7 +43,7 @@ lrzsz_iomode(int fd, int n, struct lrzsz_config *cf)
 	static int did0 = FALSE;
 	struct termios tty;
 
-	lrzsz_syslog(LOG_DEBUG,NULL,"iomode: %d",n);
+	lrzsz_log(LOG_DEBUG,NULL,"iomode: %d",n);
 
 	switch(n) {
 

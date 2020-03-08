@@ -73,8 +73,6 @@ static int wcsend (int argc, char *argp[]);
 static int wcputsec (char *buf, int sectnum, size_t cseclen);
 static void usage1 (int exitcode);
 
-int syslog_facility=-1;
-
 #define ZSDATA(x,y,z) \
 	do { if (Crc32t) {zsda32(x,y,z); } else {zsdata(x,y,z);}} while(0)
 #define DATAADR (txbuf)
@@ -217,7 +215,6 @@ static struct option const long_options[] =
   {"restricted", no_argument, NULL, 'R'},
   {"quiet", no_argument, NULL, 'q'},
   {"stop-at", required_argument, NULL, 's'},
-  {"syslog", optional_argument, NULL , 2},
   {"timesync", no_argument, NULL, 'S'},
   {"timeout", required_argument, NULL, 't'},
   {"turbo", no_argument, NULL, 'T'},
@@ -230,9 +227,13 @@ static struct option const long_options[] =
   {"zmodem", no_argument, NULL, 'Z'},
   {"overwrite", no_argument, NULL, 'y'},
   {"overwrite-or-skip", no_argument, NULL, 'Y'},
-
   {"delay-startup", required_argument, NULL, 4},
   {"no-unixmode", no_argument, NULL, 8},
+
+  {"syslog-facility", required_argument, NULL , 10},
+  {"syslog-severity", required_argument, NULL , 11},
+  {"log-level",       required_argument, NULL , 12},
+
   {NULL, 0, NULL, 0}
 };
 
@@ -254,7 +255,6 @@ main(int argc, char **argv)
 	char **patts;
 	int c;
 	unsigned int startup_delay=0;
-	syslog_facility=parse_syslog_facility("UUCP"); // or include syslog.h sys/syslog.h...
 
 	if (((cp = getenv("ZNULLS")) != NULL) && *cp)
 		Znulls = atoi(cp);
@@ -457,20 +457,15 @@ main(int argc, char **argv)
 			/* **** FALLL THROUGH TO **** */
 		case 'y':
 			Lzmanag = ZF1_ZMCLOB; break;
-#ifdef ENABLE_SYSLOG
-		case 2:
-			if (optarg && (!strcmp(optarg,"off") || !strcmp(optarg,"no")))
-			{
-				syslog_facility=-1;
-			} else if (optarg) {
-				syslog_facility=parse_syslog_facility(optarg); // or include syslog.h sys/syslog.h...
-				if (-1==syslog_facility) {
-					usage(2,_("invalid syslog facility"));
-				}
-			}
-			/* else stay at default */
+		case 10:
+			lrzsz_set_syslog_facility(optarg);
 			break;
-#endif
+		case 11:
+			lrzsz_set_syslog_severity(optarg);
+			break;
+		case 12:
+			lrzsz_set_locallog_severity(optarg);
+			break;
 		case 4:
 			s_err = xstrtoul (optarg, NULL, 0, &tmp, NULL);
 			startup_delay = tmp;
@@ -488,10 +483,6 @@ main(int argc, char **argv)
 		error(1,0,
 		_("this program was never intended to be used setuid\n"));
 	}
-
-#ifdef ENABLE_SYSLOG
-	openlog(program_name,LOG_PID,syslog_facility);
-#endif
 
 	txbuf=malloc(MAX_BLOCK);
 	if (!txbuf) error(1,0,_("out of memory"));
@@ -531,7 +522,7 @@ main(int argc, char **argv)
 		if (Verbose == 0)
 			Verbose = 2;
 	}
-	vfile("%s %s\n", program_name, VERSION);
+	lrzsz_log(LOG_DEBUG, NULL, "%s %s\n", program_name, VERSION);
 
 	{
 		/* we write max_blocklen (data) + 18 (ZModem protocol overhead)
@@ -782,19 +773,19 @@ wcs(const char *oname, const char *remotename)
 	++Filcnt;
 	switch (wctxpn(&zi)) {
 	case ERROR:
-		lrzsz_syslog(LOG_INFO, &zi, _("error occured"));
+		lrzsz_log(LOG_INFO, &zi, _("error occured"));
 		free(name);
 		return ERROR;
 	case ZSKIP:
-		lrzsz_syslog(LOG_INFO, &zi, _("skipped"));
+		lrzsz_log(LOG_INFO, &zi, _("skipped"));
 		error(0,0, _("skipped: %s"),name);
 		free(name);
 		return OK;
 	}
-	free(name);
 	if (!zmodem_requested && wctx(&zi)==ERROR)
 	{
-		lrzsz_syslog(LOG_INFO, &zi, _("error occured"));
+		lrzsz_log(LOG_INFO, &zi, _("error occured"));
+		free(name);
 		return ERROR;
 	}
 	if (Unlinkafter)
@@ -810,8 +801,9 @@ wcs(const char *oname, const char *remotename)
 		if (Verbose > 1) 
 			vstringf(_("Bytes Sent:%7ld   BPS:%-8ld                        \n"),
 				(long) zi.bytes_sent,bps);
-		lrzsz_syslog(LOG_INFO, &zi,  "%ld bytes,  %ld bps", (long) zi.bytes_sent,bps);
+		lrzsz_log(LOG_INFO, &zi,  "%ld bytes,  %ld bps", (long) zi.bytes_sent,bps);
 	}
+	free(name);
 	return 0;
 }
 
@@ -839,8 +831,7 @@ wctxpn(struct zm_fileinfo *zi)
 	}
 	if (!zmodem_requested)
 		if (getnak()) {
-			vfile("getnak failed");
-			lrzsz_syslog(LOG_NOTICE, zi, "getnak failed");
+			lrzsz_log(LOG_NOTICE, zi, "getnak failed");
 			return ERROR;
 		}
 
@@ -876,8 +867,7 @@ wctxpn(struct zm_fileinfo *zi)
 	if (zmodem_requested)
 		return zsendfile(zi,txbuf, 1+strlen(p)+(p-txbuf));
 	if (wcputsec(txbuf, 0, 128)==ERROR) {
-		vfile("wcputsec failed");
-		lrzsz_syslog(LOG_NOTICE, zi, "wcputsec failed");
+		lrzsz_log(LOG_NOTICE, zi, "wcputsec failed");
 		return ERROR;
 	}
 	return OK;
@@ -942,13 +932,13 @@ wctx(struct zm_fileinfo *zi)
 	register int sectnum, attempts, firstch;
 
 	firstsec=TRUE;  thisblklen = blklen;
-	vfile("wctx:file length=%ld", (long) zi->bytes_total);
+	lrzsz_log(LOG_DEBUG, zi, "wctx: file length=%ld", (long) zi->bytes_total);
 
 	while ((firstch=READLINE_PF(Rxtimeout))!=NAK && firstch != WANTCRC
 	  && firstch != WANTG && firstch!=TIMEOUT && firstch!=CAN)
 		;
 	if (firstch==CAN) {
-		zperr(_("Receiver Cancelled"));
+		lrzsz_log(LOG_NOTICE,zi, "Receiver Cancelled");
 		return ERROR;
 	}
 	if (firstch==WANTCRC)
@@ -1253,7 +1243,7 @@ getzrxinit(void)
 			Rxbuflen = (0377 & Rxhdr[ZP0])+((0377 & Rxhdr[ZP1])<<8);
 			if ( !(Rxflags & CANFDX))
 				Txwindow = 0;
-			vfile("Rxbuflen=%d Tframlen=%d", Rxbuflen, Tframlen);
+			lrzsz_log(LOG_DEBUG,NULL,"Rxbuflen=%d Tframlen=%d", Rxbuflen, Tframlen);
 			if ( play_with_sigint)
 				signal(SIGINT, SIG_IGN);
 			lrzsz_iomode(io_mode_fd, LRZSZ_IOMODE_UNRAW_G, &config);
@@ -1261,7 +1251,7 @@ getzrxinit(void)
 			/* Use MAX_BLOCK byte frames if no sample/interrupt */
 			if (Rxbuflen < 32 || Rxbuflen > MAX_BLOCK) {
 				Rxbuflen = MAX_BLOCK;
-				vfile("Rxbuflen=%d", Rxbuflen);
+				lrzsz_log(LOG_DEBUG,NULL,("Rxbuflen=%d", Rxbuflen);
 			}
 #endif
 			/* Override to force shorter frame length */
@@ -1269,7 +1259,7 @@ getzrxinit(void)
 				Rxbuflen = Tframlen;
 			if ( !Rxbuflen)
 				Rxbuflen = 1024;
-			vfile("Rxbuflen=%d", Rxbuflen);
+			lrzsz_log(LOG_DEBUG, NULL, "Rxbuflen=%d", Rxbuflen);
 
 			/* If using a pipe for testing set lower buf len */
 			fstat(0, &f);
@@ -1298,8 +1288,8 @@ getzrxinit(void)
 				blklen = Rxbuflen;
 			if (blkopt && blklen > blkopt)
 				blklen = blkopt;
-			vfile("Rxbuflen=%d blklen=%d", Rxbuflen, blklen);
-			vfile("Txwindow = %u Txwspac = %d", Txwindow, Txwspac);
+			lrzsz_log(LOG_DEBUG, NULL, "Rxbuflen=%d blklen=%d Txwindow = %u Txwspac = %d", 
+				Rxbuflen, blklen, Txwindow, Txwspac);
 			Rxtimeout=old_timeout;
 			return (sendzsinit());
 		case ZCAN:
@@ -1388,21 +1378,21 @@ again:
 		case ZRQINIT:  /* remote site is sender! */
 			if (Verbose)
 				vstringf(_("got ZRQINIT"));
-			lrzsz_syslog(LOG_ERR, zi, "got ZRQINIT - sz talks to sz");
+			lrzsz_log(LOG_ERR, zi, "got ZRQINIT - sz talks to sz");
 			return ERROR;
 		case ZCAN:
 			if (Verbose)
 				vstringf(_("got ZCAN"));
-			lrzsz_syslog(LOG_NOTICE, zi, "got ZCAN - receiver canceled");
+			lrzsz_log(LOG_NOTICE, zi, "got ZCAN - receiver canceled");
 			return ERROR;
 		case TIMEOUT:
-			lrzsz_syslog(LOG_NOTICE, zi, "got TIMEOUT");
+			lrzsz_log(LOG_NOTICE, zi, "got TIMEOUT");
 			return ERROR;
 		case ZABORT:
-			lrzsz_syslog(LOG_NOTICE, zi, "got ZABORT");
+			lrzsz_log(LOG_NOTICE, zi, "got ZABORT");
 			return ERROR;
 		case ZFIN:
-			lrzsz_syslog(LOG_NOTICE, zi, "got ZFIN");
+			lrzsz_log(LOG_NOTICE, zi, "got ZFIN");
 			return ERROR;
 		case ZCRC:
 			crc = 0xFFFFFFFFL;
@@ -1429,8 +1419,7 @@ again:
 				input_f=NULL;
 			}
 
-			vfile("receiver skipped");
-			lrzsz_syslog(LOG_INFO,zi,"receiver skipped");
+			lrzsz_log(LOG_INFO,zi,"receiver skipped");
 			return ZSKIP;
 		case ZRPOS:
 			/*
@@ -1438,9 +1427,7 @@ again:
 			 * lastsync==bytcnt
 			 */
 			if (rxpos && fseek(input_f, (long) rxpos, 0)) {
-				int er=errno;
-				vfile("fseek failed: %s", strerror(er));
-				lrzsz_syslog(LOG_ERR, zi, "fseek failed: %s",strerror(errno));
+				lrzsz_log(LOG_ERR, zi, "fseek failed: %s",strerror(errno));
 				return ERROR;
 			}
 			if (rxpos)
@@ -1484,21 +1471,21 @@ zsendfdata (struct zm_fileinfo *zi)
 				fclose (input_f);
 				input_f=NULL;
 			}
-			lrzsz_syslog(LOG_ERR, zi, "got %d",c);
+			lrzsz_log(LOG_ERR, zi, "got %d",c);
 			return ERROR;
 		case ZCAN:
 			if (input_f) {
 				fclose (input_f);
 				input_f=NULL;
 			}
-			lrzsz_syslog(LOG_INFO, zi, "got ZCAN");
+			lrzsz_log(LOG_INFO, zi, "got ZCAN");
 			return ERROR;
 		case ZSKIP:
 			if (input_f) {
 				fclose (input_f);
 				input_f=NULL;
 			}
-			lrzsz_syslog(LOG_INFO, zi, "got ZSKIP");
+			lrzsz_log(LOG_INFO, zi, "got ZSKIP");
 			return ZSKIP;
 		case ZACK:
 		case ZRPOS:
@@ -1589,7 +1576,7 @@ zsendfdata (struct zm_fileinfo *zi)
 								  last_bps, min_bps);
 								vstring("\r\n");
 							}
-							lrzsz_syslog(LOG_NOTICE, zi, "bps rate too low: %ld < %ld",
+							lrzsz_log(LOG_NOTICE, zi, "bps rate too low: %ld < %ld",
 									   last_bps, min_bps);
 							return ERROR;
 						}
@@ -1605,7 +1592,7 @@ zsendfdata (struct zm_fileinfo *zi)
 					vstring(_("zsendfdata: reached stop time"));
 					vstring("\r\n");
 				}
-				lrzsz_syslog(LOG_NOTICE, zi, "reached stop time");
+				lrzsz_log(LOG_NOTICE, zi, "reached stop time");
 				return ERROR;
 			}
 
@@ -1656,7 +1643,7 @@ zsendfdata (struct zm_fileinfo *zi)
 		if (Txwindow) {
 			size_t tcount = 0;
 			while ((tcount = zi->bytes_sent - Lrxpos) >= Txwindow) {
-				vfile ("%ld (%ld,%ld) window >= %u", tcount, 
+				lrzsz_log(LOG_DEBUG, zi, "%ld (%ld,%ld) window >= %u", tcount, 
 					(long) zi->bytes_sent, (long) Lrxpos,
 					Txwindow);
 				if (e != ZCRCQ)
@@ -1667,7 +1654,7 @@ zsendfdata (struct zm_fileinfo *zi)
 					goto gotack;
 				}
 			}
-			vfile ("window = %ld", tcount);
+			lrzsz_log(LOG_DEBUG, zi, "window = %ld", tcount);
 		}
 	} while (!zi->eof_seen);
 
@@ -1690,14 +1677,14 @@ zsendfdata (struct zm_fileinfo *zi)
 				fclose (input_f);
 				input_f=NULL;
 			}
-			lrzsz_syslog(LOG_INFO, zi, "got ZSKIP");
+			lrzsz_log(LOG_INFO, zi, "got ZSKIP");
 			return c;
 		default:
 			if (input_f) {
 				fclose (input_f);
 				input_f=NULL;
 			}
-			lrzsz_syslog(LOG_ERR, zi, "got %d", c);
+			lrzsz_log(LOG_ERR, zi, "got %d", c);
 			return ERROR;
 		}
 	}

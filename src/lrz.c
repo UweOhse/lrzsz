@@ -159,7 +159,9 @@ static struct option const long_options[] =
 	{"zmodem", no_argument, NULL, 'Z'},
 	{"overwrite", no_argument, NULL, 'y'},
 	{"null", no_argument, NULL, 'D'},
-	{"syslog", optional_argument, NULL , 2},
+	{"syslog-facility", required_argument, NULL , 10},
+	{"syslog-severity", required_argument, NULL , 11},
+	{"log-level",       required_argument, NULL , 12},
 	{"delay-startup", required_argument, NULL, 4},
 	{NULL,0,NULL,0}
 };
@@ -178,7 +180,6 @@ main(int argc, char *argv[])
 	char **patts=NULL; /* keep compiler quiet */
 	int exitcode=0;
 	int c;
-	int syslog_facility=-1;
 	unsigned int startup_delay=0;
 
 	Rxtimeout = 100;
@@ -314,9 +315,9 @@ main(int argc, char *argv[])
 			if (!under_rsh)
 				Restricted=0;
 			else  {
-				lsyslog(LOG_WARNING, "--unrestrict option used under restricted shell");
-				error(1,0,
-	_("security violation: can't do that under restricted shell\n"));
+				lrzsz_log(LOG_WARNING, NULL, 
+					"--unrestrict option used under restricted shell");
+				exit(1);
 			}
 			break;
 		case 'v':
@@ -326,21 +327,17 @@ main(int argc, char *argv[])
 		case 'Z': protocol=ZM_ZMODEM; break;
 		case 'y':
 			Rxclob=TRUE; break;
-#ifdef ENABLE_SYSLOG
-		case 2:
-			if (optarg && (!strcmp(optarg,"off") || !strcmp(optarg,"no"))) {
-				syslog_facility=-1;
-			} else if (optarg) {
-				syslog_facility=parse_syslog_facility(optarg);
-				if (-1==syslog_facility) {
-					usage(2,_("invalid syslog facility"));
-				}
-			} else {
-				syslog_facility=parse_syslog_facility("UUCP");
-			}
+
+		case 10:
+			lrzsz_set_syslog_facility(optarg);
 			break;
-#endif
-        	case 4:
+		case 11:
+			lrzsz_set_syslog_severity(optarg);
+			break;
+		case 12:
+			lrzsz_set_locallog_severity(optarg);
+			break;
+		case 4:
 			s_err = xstrtoul (optarg, NULL, 0, &tmp, NULL);
 			startup_delay = tmp;
 			if (s_err != LONGINT_OK)
@@ -351,12 +348,6 @@ main(int argc, char *argv[])
 		}
 
 	}
-
-#ifdef ENABLE_SYSLOG
-	if (syslog_facility!=-1) {
-		openlog(program_name,LOG_PID,syslog_facility);
-	}
-#endif
 
 	if (getuid()!=geteuid()) {
 		error(1,0,
@@ -388,8 +379,6 @@ main(int argc, char *argv[])
 		if (Verbose == 0)
 			Verbose = 2;
 	}
-
-	vfile("%s %s\n", program_name, VERSION);
 
 	lrzsz_iomode(0, LRZSZ_IOMODE_RAW, &config);
 	readline_setup(0, MAX_BLOCK, MAX_BLOCK*2);
@@ -537,12 +526,8 @@ wcreceive(int argc, char **argp)
 						d=0.5; /* can happen if timing uses time() */
 					bps=(zi.bytes_received-zi.bytes_skipped)/d;
 
-					if (Verbose>1) {
-						vstringf(
-							_("\rBytes received: %7ld/%7ld   BPS:%-6ld                \r\n"),
-							(long) zi.bytes_received, (long) zi.bytes_total, bps);
-					}
-					lrzsz_syslog(LOG_INFO,&zi, "%ld Bytes, %ld BPS", zi.bytes_received, bps);
+					lrzsz_log(LOG_INFO,&zi, "%ld Bytes of %ld, %ld BPS", 
+						zi.bytes_received, zi.bytes_total, bps);
 				}
 			}
 		}
@@ -571,7 +556,7 @@ wcreceive(int argc, char **argp)
 		vstring("\r\n");
 
 		if ((fout=fopen(Pathname, "w")) == NULL) {
-			lrzsz_syslog(LOG_ERR,&zi, "cannot open: %s", strerror(errno));
+			lrzsz_log(LOG_ERR,&zi, "cannot open: %s", strerror(errno));
 			return ERROR;
 		}
 		if (wcrx(&zi)==ERROR) {
@@ -589,13 +574,13 @@ wcreceive(int argc, char **argp)
 					_("\rBytes received: %7ld   BPS:%-6ld                \r\n"),
 					(long) zi.bytes_received, bps);
 			}
-			lrzsz_syslog(LOG_INFO,&zi, "%ld Bytes, %ld BPS",
+			lrzsz_log(LOG_INFO,&zi, "%ld Bytes, %ld BPS",
 					zi.bytes_received, bps);
 		}
 	}
 	return OK;
 fubar:
-	lrzsz_syslog(LOG_ERR,&zi, "got error");
+	lrzsz_log(LOG_INFO,&zi, "got error");
 	canit(STDOUT_FILENO);
 	if (Topipe && fout) {
 		pclose(fout);  return ERROR;
@@ -632,7 +617,7 @@ et_tu:
 	purgeline(0); /* Do read next time ... */
 	while ((c = wcgetsec(&Blklen, rpn, 100)) != 0) {
 		if (c == WCEOT) {
-			zperr( _("Pathname fetch returned EOT"));
+			lrzsz_log(LOG_INFO, zi, "Pathname fetch returned EOT");
 			sendline(ACK);
 			flushmo();
 			purgeline(0);	/* Do read next time ... */
@@ -679,7 +664,7 @@ wcrx(struct zm_fileinfo *zi)
 			sendchar=ACK;
 		}
 		else if (sectcurr==(sectnum&0377)) {
-			zperr( _("Received dup Sector"));
+			lrzsz_log(LOG_DEBUG,zi, "Received dup Sector");
 			sendchar=ACK;
 		}
 		else if (sectcurr==WCEOT) {
@@ -693,7 +678,7 @@ wcrx(struct zm_fileinfo *zi)
 		else if (sectcurr==ERROR)
 			return ERROR;
 		else {
-			zperr( _("Sync Error"));
+			lrzsz_log(LOG_DEBUG, zi, "Sync Error");
 			return ERROR;
 		}
 	}
@@ -719,7 +704,8 @@ wcgetsec(size_t *Blklen, char *rxbuf, unsigned int maxtime)
 	for (Lastrx=errors=0; errors<RETRYMAX; errors++) {
 
 		if ((firstch=READLINE_PF(maxtime))==STX) {
-			*Blklen=1024; goto get2;
+			*Blklen=1024;
+			goto get2;
 		}
 		if (firstch==SOH) {
 			*Blklen=128;
@@ -741,7 +727,7 @@ get2:
 						goto bilge;
 					oldcrc=updcrc(firstch, oldcrc);
 					if (oldcrc & 0xFFFF)
-						zperr( _("CRC"));
+						lrzsz_log(LOG_DEBUG,NULL,"CRC error");
 					else {
 						Firstsec=FALSE;
 						return sectcurr;
@@ -752,17 +738,17 @@ get2:
 					return sectcurr;
 				}
 				else
-					zperr( _("Checksum"));
+					lrzsz_log(LOG_DEBUG, NULL, "Checksum error");
 			}
 			else
-				zperr(_("Sector number garbled"));
+				lrzsz_log(LOG_DEBUG,NULL,"Sector number garbled");
 		}
 		/* make sure eot really is eot and not just mixmash */
 		else if (firstch==EOT && READLINE_PF(1)==TIMEOUT)
 			return WCEOT;
 		else if (firstch==CAN) {
 			if (Lastrx==CAN) {
-				zperr( _("Sender Cancelled"));
+				lrzsz_log(LOG_DEBUG, NULL, "Sender Cancelled");
 				return ERROR;
 			} else {
 				Lastrx=CAN;
@@ -773,10 +759,10 @@ get2:
 			if (Firstsec)
 				goto humbug;
 bilge:
-			zperr( _("TIMEOUT"));
+			lrzsz_log(LOG_DEBUG, NULL, "Timeout");
 		}
 		else
-			zperr( _("Got 0%o sector header"), firstch);
+			lrzsz_log(LOG_DEBUG, NULL, "Got 0%o sector header", firstch);
 
 humbug:
 		Lastrx=0;
@@ -818,7 +804,7 @@ do_crc_check(FILE *f, struct zm_fileinfo *fi, size_t remote_bytes, size_t check_
 	int c;
 	int t1=0,t2=0;
 	if (-1==fstat(fileno(f),&st)) {
-		lrzsz_syslog(LOG_ERR,fi, "cannot fstat open file: %s",strerror(errno));
+		lrzsz_log(LOG_ERR,fi, "cannot fstat open file: %s",strerror(errno));
 		return ERROR;
 	}
 	if (check_bytes==0 && ((size_t) st.st_size)!=remote_bytes)
@@ -885,7 +871,7 @@ procheader(char *name, struct zm_fileinfo *zi)
 				/* alert - file name ended in with a / */
 				if (Verbose)
 					vstringf(_("file name ends with a /, skipped: %s\n"),name);
-				lrzsz_syslog(LOG_ERR,zi,"file name ends with a /, skipped");
+				lrzsz_log(LOG_ERR,zi,"file name ends with a /, skipped");
 				return ERROR;
 			}
 			name=p;
@@ -950,25 +936,20 @@ procheader(char *name, struct zm_fileinfo *zi)
 		int i;
 		if (zmanag == ZF1_ZMNEW || zmanag==ZF1_ZMNEWL) {
 			if (-1==fstat(fileno(fout),&sta)) {
-#ifdef ENABLE_SYSLOG
-				int e=errno;
-#endif
-				if (Verbose)
-					vstringf(_("file exists, skipped: %s\n"),name);
-				lrzsz_syslog(LOG_ERR,zi,"cannot fstat open file %s: %s",
-					name,strerror(e));
+				lrzsz_log(LOG_ERR,zi,"cannot fstat open file: %s",
+					strerror(errno));
 				return ERROR;
 			}
 			if (zmanag == ZF1_ZMNEW) {
 				if (sta.st_mtime > zi->modtime) {
-					lrzsz_syslog(LOG_NOTICE,zi,"skipping: newer file exists");
+					lrzsz_log(LOG_INFO,zi,"skipping: newer file exists");
 					return ERROR; /* skips file */
 				}
 			} else {
 				/* newer-or-longer */
 				if (((size_t) sta.st_size) >= zi->bytes_total 
 					&& sta.st_mtime > zi->modtime) {
-					lrzsz_syslog(LOG_NOTICE,zi,"skipping: longer+newer file exists");
+					lrzsz_log(LOG_INFO,zi,"skipping: longer+newer file exists");
 					return ERROR; /* skips file */
 				}
 			}
@@ -987,8 +968,7 @@ procheader(char *name, struct zm_fileinfo *zi)
 			size_t namelen;
 			fclose(fout);
 			if ((zmanag & ZF1_ZMMASK)!=ZF1_ZMCHNG) {
-				if (Verbose)
-					vstringf(_("file exists, skipped: %s\n"),name);
+				lrzsz_log(LOG_INFO, zi, "file exists, skipped");
 				return ERROR;
 			}
 			/* try to rename */
@@ -1107,11 +1087,8 @@ procheader(char *name, struct zm_fileinfo *zi)
 #endif
 		if ( !fout)
 		{
-#ifdef ENABLE_SYSLOG
 			int e=errno;
-#endif
-			lrzsz_syslog(LOG_ERR, zi, "cannot open: %s",strerror(e));
-			zpfatal(_("cannot open %s"), name_static);
+			lrzsz_log(LOG_ERR, zi, "cannot open: %s",strerror(e));
 			return ERROR;
 		}
 	}
@@ -1176,7 +1153,7 @@ make_dirs(char *pathname)
 			continue;
 		*p = 0;				/* Truncate the path there */
 		if ( !mkdir(pathname, 0777)) {	/* Try to create it as a dir */
-			vfile("Made directory %s\n", pathname);
+			lrzsz_log(LOG_INFO,NULL,"Made directory %s\n", pathname);
 			madeone++;		/* Remember if we made one */
 			*p = '/';
 			continue;
@@ -1420,7 +1397,7 @@ again:
 		case ZCOMMAND:
 			if (zrdata(secbuf, MAX_BLOCK,&bytes_in_block) == GOTCRCW) {
 				secbuf[MAX_BLOCK-1]=0;
-				lrzsz_syslog(LOG_WARNING,NULL, "received execution request: %s",
+				lrzsz_log(LOG_WARNING,NULL, "received execution request: %s",
 					secbuf);
 				return ERROR;
 			}
@@ -1472,7 +1449,7 @@ rzfiles(struct zm_fileinfo *zi)
 						_("\rBytes received: %7ld/%7ld   BPS:%-6ld                \r\n"),
 						(long) zi->bytes_received, (long) zi->bytes_total, bps);
 				}
-				lrzsz_syslog(LOG_INFO, zi, "%ld Bytes, %ld BPS", (long) zi->bytes_total,bps);
+				lrzsz_log(LOG_INFO, zi, "%ld Bytes, %ld BPS", (long) zi->bytes_total,bps);
 			}
 			/* FALL THROUGH */
 		case ZSKIP:
@@ -1480,7 +1457,7 @@ rzfiles(struct zm_fileinfo *zi)
 			{
 				if (Verbose) 
 					vstringf(_("Skipped"));
-				lrzsz_syslog(LOG_NOTICE, zi, "skipped");
+				lrzsz_log(LOG_NOTICE, zi, "skipped");
 			}
 			switch (tryz()) {
 			case ZCOMPL:
@@ -1494,7 +1471,7 @@ rzfiles(struct zm_fileinfo *zi)
 		default:
 			return c;
 		case ERROR:
-			lrzsz_syslog(LOG_NOTICE, zi, "error");
+			lrzsz_log(LOG_NOTICE, zi, "error");
 			return ERROR;
 		}
 	}
@@ -1534,7 +1511,7 @@ rzfile(struct zm_fileinfo *zi)
 	n = 20;
 
 	if (procheader(secbuf,zi) == ERROR) {
-		lrzsz_syslog(LOG_ERR, zi," procheader error");
+		lrzsz_log(LOG_ERR, zi," procheader error");
 		return (tryzhdrtype = ZSKIP);
 	}
 
@@ -1550,13 +1527,13 @@ nxthdr:
 				if (akt->pos==zi->bytes_received) {
 					putsec(zi, akt->data, akt->len);
 					zi->bytes_received += akt->len;
-					vfile("using saved out-of-sync-paket %lx, len %ld",
+					lrzsz_log(LOG_NOTICE,zi,"using saved out-of-sync-paket %lx, len %ld",
 						  akt->pos,akt->len);
 					goto nxthdr;
 				}
 				next=akt->next;
 				if (akt->pos<zi->bytes_received) {
-					vfile("removing unneeded saved out-of-sync-paket %lx, len %ld",
+					lrzsz_log(LOG_NOTICE,zi,"removing unneeded saved out-of-sync-paket %lx, len %ld",
 						  akt->pos,akt->len);
 					if (last)
 						last->next=akt->next;
@@ -1573,15 +1550,13 @@ nxthdr:
 		c = zgethdr(Rxhdr, 0, NULL, &config);
 		switch (c) {
 		default:
-			lrzsz_syslog(LOG_NOTICE, zi, "zgethdr returned %d", c);
-			vfile("rzfile: zgethdr returned %d", c);
+			lrzsz_log(LOG_NOTICE, zi, "zgethdr returned %d", c);
 			return ERROR;
 		case ZNAK:
 		case TIMEOUT:
 			if ( --n < 0) {
-				lrzsz_syslog(LOG_INFO, zi, "zgethdr returned %s",
+				lrzsz_log(LOG_INFO, zi, "zgethdr returned %s",
 					   c == ZNAK ? "ZNAK" : "TIMEOUT");
-				vfile("rzfile: zgethdr returned %d", c);
 				return ERROR;
 			}
 		case ZFILE:
@@ -1599,24 +1574,21 @@ nxthdr:
 			int err = closeit(zi);
 			if (err) {
 				tryzhdrtype = ZFERR;
-				lrzsz_syslog(LOG_INFO, zi, "closeit failed: %sd", strerror(err));
-				vfile("rzfile: closeit returned <> 0");
+				lrzsz_log(LOG_INFO, zi, "closeit failed: %sd", strerror(err));
 				return ERROR;
 			}
-			vfile("rzfile: normal EOF");
+			// normal EOF
 			return c;
 		case ERROR:	/* Too much garbage in header search error */
 			if ( --n < 0) {
-				lrzsz_syslog(LOG_INFO, zi, "zgethdr returned %d", c);
-				vfile("rzfile: zgethdr returned %d", c);
+				lrzsz_log(LOG_INFO, zi, "zgethdr returned %d", c);
 				return ERROR;
 			}
 			zmputs(Attn);
 			continue;
 		case ZSKIP:
 			closeit(zi);
-			lrzsz_syslog(LOG_INFO, zi, "sender skipped");
-			vfile("rzfile: Sender SKIPPED file");
+			lrzsz_log(LOG_INFO, zi, "sender skipped");
 			return c;
 		case ZDATA:
 			if (rclhdr(Rxhdr) != (long) zi->bytes_received) {
@@ -1625,8 +1597,7 @@ nxthdr:
 				size_t pos=rclhdr(Rxhdr);
 #endif
 				if ( --n < 0) {
-					vfile("rzfile: out of sync");
-					lrzsz_syslog(LOG_NOTICE, zi, "out of sync");
+					lrzsz_log(LOG_NOTICE, zi, "out of sync");
 					return ERROR;
 				}
 #if defined(SAVE_OOSB)
@@ -1642,11 +1613,9 @@ nxthdr:
 							neu->data=malloc(bytes_in_block);
 						if (neu && neu->data) {
 /* call syslog to tell me if this happens */
-							lsyslog(LOG_ERR, 
+							lrzsz_log(LOG_NOTICE, zi, 
 								   "saving out-of-sync-block %lx, len %lu",
 								   pos, (unsigned long) bytes_in_block);
-							vfile("saving out-of-sync-block %lx, len %lu",pos,
-								  (unsigned long) bytes_in_block);
 							memcpy(neu->data,secbuf,bytes_in_block);
 							neu->pos=pos;
 							neu->len=bytes_in_block;
@@ -1681,9 +1650,7 @@ moredata:
 						if (last_bps<min_bps) {
 							if (now-low_bps>=min_bps_time) {
 								/* too bad */
-								vfile(_("rzfile: bps rate %ld below min %ld"), 
-									  last_bps, min_bps);
-								lrzsz_syslog(LOG_NOTICE, zi, "bps rate too low: %ld < %ld",
+								lrzsz_log(LOG_NOTICE, zi, "bps rate too low: %ld < %ld",
 										   last_bps, min_bps);
 								return ERROR;
 							}
@@ -1696,8 +1663,7 @@ moredata:
 				}
 				if (stop_time && now>=stop_time) {
 					/* too bad */
-					vfile(_("rzfile: reached stop time"));
-					lrzsz_syslog(LOG_NOTICE,zi, "reached stop time");
+					lrzsz_log(LOG_NOTICE,zi, "reached stop time");
 					return ERROR;
 				}
 				
@@ -1713,21 +1679,18 @@ moredata:
 
 			switch (c = zrdata(secbuf, MAX_BLOCK,&bytes_in_block)) {
 			case ZCAN:
-				vfile("rzfile: zrdata returned ZCAN");
-				lrzsz_syslog(LOG_ERR, zi, "zrdata returned ZCAN", c);
+				lrzsz_log(LOG_ERR, zi, "zrdata returned ZCAN", c);
 				return ERROR;
 			case ERROR:	/* CRC error */
 				if ( --n < 0) {
-					lrzsz_syslog(LOG_ERR, zi, "zrdata returned %d", c);
-					vfile("rzfile: zrdata returned %d", c);
+					lrzsz_log(LOG_ERR, zi, "zrdata returned %d", c);
 					return ERROR;
 				}
 				zmputs(Attn);
 				continue;
 			case TIMEOUT:
 				if ( --n < 0) {
-					lrzsz_syslog(LOG_NOTICE, zi, "zrdata returned TIMEOUT");
-					vfile("rzfile: zgethdr returned %d", c);
+					lrzsz_log(LOG_NOTICE, zi, "zrdata returned TIMEOUT");
 					return ERROR;
 				}
 				continue;
@@ -1835,7 +1798,6 @@ ackbibi(void)
 {
 	int n;
 
-	vfile("ackbibi:");
 	Readnum = 1;
 	stohdr(0L);
 	for (n=3; --n>=0; ) {
@@ -1844,7 +1806,6 @@ ackbibi(void)
 		switch (READLINE_PF(100)) {
 		case 'O':
 			READLINE_PF(1);	/* Discard 2nd 'O' */
-			vfile("ackbibi complete");
 			return;
 		case RCDO:
 			return;

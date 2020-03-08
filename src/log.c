@@ -1,5 +1,5 @@
 /*
-  lsyslog.c - wrapper for the syslog function
+  log.c - lrzsz log handling
   Copyright (C) 1997 Uwe Ohse
 
   This program is free software; you can redistribute it and/or modify
@@ -21,19 +21,36 @@
 #include "config.h"
 #include <stdarg.h>
 #include "zglobal.h"
-#ifdef ENABLE_SYSLOG
+#include "error.h"
+
 #include <pwd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
-#endif
 
-#ifdef ENABLE_SYSLOG
 static const char *username;
+static int lrzsz_locallog_severity=LOG_INFO;
+static int lrzsz_syslog_facility=LOG_UUCP;
+static int lrzsz_syslog_severity=LOG_EMERG;
+static int lrzsz_openlog_done;
+
+static const char *severityname(int sev) {
+	switch(sev) {
+	case 0: return "Emergency";
+	case 1: return "Alert";
+	case 2: return "Critical";
+	case 3: return "Error";
+	case 4: return "Warning";
+	case 5: return "Notice";
+	case 6: return "Info";
+	case 7: return "Debug";
+	}
+	return "Debug";
+}
 
 static void
-lrzsz_syslog_init(void)
+lrzsz_log_init(void)
 {
 	static int init_done=0;
 	static char uid_string[20]=""; /* i'd really hate this function to fail! */
@@ -48,7 +65,7 @@ lrzsz_syslog_init(void)
 	uid=getuid();
 	pwd=getpwuid(uid);
 	if (pwd && pwd->pw_name && *pwd->pw_name) {
-		username=strdup(pwd->pw_name);
+		username=xstrdup(pwd->pw_name);
 	}
 	if (!username) {
 		username=uid_string;
@@ -56,58 +73,55 @@ lrzsz_syslog_init(void)
 	}
 }
 
-#endif
-
+#define LRZSZ_LOG_BUF_SIZE 1024
 void
-lrzsz_syslog(int prio, struct zm_fileinfo *fi, const char *format, ...)
+lrzsz_log(int prio, struct zm_fileinfo *fi, const char *format, ...)
 {
         va_list ap;
-	char *s=NULL;
+
+	char buf[LRZSZ_LOG_BUF_SIZE];
+
 	if (-1==prio) {
 		return;
 	}
-#ifdef ENABLE_SYSLOG
-	lrzsz_syslog_init();
+
+	lrzsz_log_init();
 
 	va_start(ap, format);
-	vasprintf(&s,format, ap);
+	vsnprintf(buf,LRZSZ_LOG_BUF_SIZE, format, ap);
 	va_end(ap);
-	if (fi && fi->fname) {
-		syslog(prio, "[%s] %s %s",username, fi->fname, s);
-	} else {
-		syslog(prio, "[%s] - %s",username, s);
-	}
-	free(s);
-#else
-	(void) format; /* get rid of warning */
-	(void) fi; /* get rid of warning */
-#endif
-}
 
-void
-lsyslog(int prio, const char *format, ...)
-{
-	char *s=NULL;
-        va_list ap;
-	if (-1==prio) {
-		return;
+	if (prio<=lrzsz_locallog_severity) {
+		// <level> filename formatted-message
+		fprintf(stderr,"%s: %s %s\n", severityname(prio), 
+			fi->fname && *fi->fname ? fi->fname : "-",
+			buf);
+		fflush(stderr);
 	}
-#ifdef ENABLE_SYSLOG
-	lrzsz_syslog_init();
-
-	va_start(ap, format);
-	vasprintf(&s,format, ap);
-	va_end(ap);
-	syslog(prio,"[%s] %s",username,s);
-	free(s);
-#else
-	(void) format; /* get rid of warning */
-#endif
+	if (prio<=lrzsz_syslog_severity) {
+		if (!lrzsz_openlog_done) {
+			openlog(program_name, LOG_PID|LOG_NDELAY, lrzsz_syslog_facility);
+			lrzsz_openlog_done=1;
+		}
+		syslog(prio, "[%s] %s %s",username, 
+			fi->fname && *fi->fname ? fi->fname : "-",
+			buf);
+	}
 }
 
 
-int parse_syslog_facility(const char *s) {
-#ifdef ENABLE_SYSLOG
+static int lrzsz_parse_syslog_severity(const char *s) {
+	if (0==strcasecmp(s,"emerg")) return LOG_EMERG; // 0
+	if (0==strcasecmp(s,"alert")) return LOG_ALERT; // 1
+	if (0==strcasecmp(s,"crit")) return LOG_CRIT;     // 2
+	if (0==strcasecmp(s,"err")) return LOG_ERR;     // 3
+	if (0==strcasecmp(s,"warning")) return LOG_WARNING;   // 4
+	if (0==strcasecmp(s,"notice")) return LOG_NOTICE;     // 5
+	if (0==strcasecmp(s,"info")) return LOG_INFO;   // 6
+	if (0==strcasecmp(s,"debug")) return LOG_DEBUG;      // 7
+	return -1;
+}
+static int lrzsz_parse_syslog_facility(const char *s) {
 	if (0==strcasecmp(s,"kern")) return LOG_KERN; // 0
 	if (0==strcasecmp(s,"kernel")) return LOG_KERN;
 	if (0==strcasecmp(s,"user")) return LOG_USER;     // 1
@@ -133,6 +147,29 @@ int parse_syslog_facility(const char *s) {
 	if (0==strcasecmp(s,"local5")) return LOG_LOCAL5;
 	if (0==strcasecmp(s,"local6")) return LOG_LOCAL6;
 	if (0==strcasecmp(s,"local7")) return LOG_LOCAL7;
-#endif
 	return -1;
+}
+void lrzsz_set_syslog_facility(const char *s) {
+	int f;
+	f=lrzsz_parse_syslog_facility(s);
+	if (-1==f) {
+		error(1,0,"invalid syslog facility %s",s);
+	}
+	lrzsz_syslog_facility=f;
+}
+void lrzsz_set_syslog_severity(const char *s) {
+	int f;
+	f=lrzsz_parse_syslog_severity(s);
+	if (-1==f) {
+		error(1,0,"invalid syslog severity %s",s);
+	}
+	lrzsz_syslog_severity=f;
+}
+void lrzsz_set_locallog_severity(const char *s) {
+	int f;
+	f=lrzsz_parse_syslog_severity(s);
+	if (-1==f) {
+		error(1,0,"invalid syslog severity %s",s);
+	}
+	lrzsz_locallog_severity=f;
 }

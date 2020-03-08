@@ -43,9 +43,6 @@
 /* define to 1 to include syslog support. */
 #undef ENABLE_SYSLOG
 
-/* Define to support the timesync protocol */
-#undef ENABLE_TIMESYNC
-
 /* Define to 1 if you have the Mac OS X function CFLocaleCopyCurrent in the
    CoreFoundation framework. */
 #undef HAVE_CFLOCALECOPYCURRENT

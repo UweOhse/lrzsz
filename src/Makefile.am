@@ -1,7 +1,7 @@
 bin_PROGRAMS=lrz lsz
-COMMON_SOURCES=iomode.c baudrate.c check_stderr.c utils.c close_and_update_meta.c
-lrz_SOURCES=lrz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
-lsz_SOURCES=lsz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
+COMMON_SOURCES=iomode.c baudrate.c check_stderr.c utils.c close_and_update_meta.c log.c canit.c protname.c zm.c rbsb.c timing.c zperr.c zreadline.c crctab.c 
+lrz_SOURCES=lrz.c $(COMMON_SOURCES)
+lsz_SOURCES=lsz.c $(COMMON_SOURCES)
 
 noinst_HEADERS = timing.h zglobal.h zmodem.h
 datadir = @prefix@/share

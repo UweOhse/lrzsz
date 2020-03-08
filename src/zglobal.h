@@ -323,9 +323,11 @@ void stohdr (size_t pos);
 long rclhdr (char *hdr);
 
 const char * protname (void);
-void lsyslog (int, const char *,...);
-void lrzsz_syslog(int, struct zm_fileinfo *, const char *, ...);
-int parse_syslog_facility(const char *s);
+
+void lrzsz_log(int, struct zm_fileinfo *, const char *, ...);
+void lrzsz_set_syslog_facility(const char *s);
+void lrzsz_set_syslog_severity(const char *s);
+void lrzsz_set_locallog_severity(const char *s);
 
 void * xmalloc (size_t sz);
 char * xstrdup (char const *str);;

@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include "zglobal.h"
+#include "error.h"
 
 #include <stdlib.h>
 #include <string.h>

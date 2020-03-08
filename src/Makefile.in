@@ -111,11 +111,11 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = iomode.$(OBJEXT) baudrate.$(OBJEXT) \
 	check_stderr.$(OBJEXT) utils.$(OBJEXT) \
-	close_and_update_meta.$(OBJEXT)
-am_lrz_OBJECTS = lrz.$(OBJEXT) timing.$(OBJEXT) zperr.$(OBJEXT) \
-	zreadline.$(OBJEXT) crctab.$(OBJEXT) rbsb.$(OBJEXT) \
-	zm.$(OBJEXT) protname.$(OBJEXT) lsyslog.$(OBJEXT) \
-	canit.$(OBJEXT) $(am__objects_1)
+	close_and_update_meta.$(OBJEXT) log.$(OBJEXT) canit.$(OBJEXT) \
+	protname.$(OBJEXT) zm.$(OBJEXT) rbsb.$(OBJEXT) \
+	timing.$(OBJEXT) zperr.$(OBJEXT) zreadline.$(OBJEXT) \
+	crctab.$(OBJEXT)
+am_lrz_OBJECTS = lrz.$(OBJEXT) $(am__objects_1)
 lrz_OBJECTS = $(am_lrz_OBJECTS)
 lrz_LDADD = $(LDADD)
 lrz_DEPENDENCIES = ../lib/libzmodem.a
@@ -123,10 +123,7 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_lsz_OBJECTS = lsz.$(OBJEXT) timing.$(OBJEXT) zperr.$(OBJEXT) \
-	zreadline.$(OBJEXT) crctab.$(OBJEXT) rbsb.$(OBJEXT) \
-	zm.$(OBJEXT) protname.$(OBJEXT) lsyslog.$(OBJEXT) \
-	canit.$(OBJEXT) $(am__objects_1)
+am_lsz_OBJECTS = lsz.$(OBJEXT) $(am__objects_1)
 lsz_OBJECTS = $(am_lsz_OBJECTS)
 lsz_LDADD = $(LDADD)
 lsz_DEPENDENCIES = ../lib/libzmodem.a
@@ -148,9 +145,8 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/baudrate.Po ./$(DEPDIR)/canit.Po \
 	./$(DEPDIR)/check_stderr.Po \
 	./$(DEPDIR)/close_and_update_meta.Po ./$(DEPDIR)/crctab.Po \
-	./$(DEPDIR)/iomode.Po ./$(DEPDIR)/lrz.Po \
-	./$(DEPDIR)/lsyslog.Po ./$(DEPDIR)/lsz.Po \
-	./$(DEPDIR)/protname.Po ./$(DEPDIR)/rbsb.Po \
+	./$(DEPDIR)/iomode.Po ./$(DEPDIR)/log.Po ./$(DEPDIR)/lrz.Po \
+	./$(DEPDIR)/lsz.Po ./$(DEPDIR)/protname.Po ./$(DEPDIR)/rbsb.Po \
 	./$(DEPDIR)/timing.Po ./$(DEPDIR)/utils.Po ./$(DEPDIR)/zm.Po \
 	./$(DEPDIR)/zperr.Po ./$(DEPDIR)/zreadline.Po
 am__mv = mv -f
@@ -335,9 +331,9 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-COMMON_SOURCES = iomode.c baudrate.c check_stderr.c utils.c close_and_update_meta.c
-lrz_SOURCES = lrz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
-lsz_SOURCES = lsz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
+COMMON_SOURCES = iomode.c baudrate.c check_stderr.c utils.c close_and_update_meta.c log.c canit.c protname.c zm.c rbsb.c timing.c zperr.c zreadline.c crctab.c 
+lrz_SOURCES = lrz.c $(COMMON_SOURCES)
+lsz_SOURCES = lsz.c $(COMMON_SOURCES)
 noinst_HEADERS = timing.h zglobal.h zmodem.h
 AM_CFLAGS = @CFLAGS@
 DISTCLEAN_FILES = lrzszbug
@@ -449,8 +445,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/close_and_update_meta.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crctab.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iomode.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lrz.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lsyslog.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lsz.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/protname.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rbsb.Po@am__quote@ # am--include-marker
@@ -626,8 +622,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/close_and_update_meta.Po
 	-rm -f ./$(DEPDIR)/crctab.Po
 	-rm -f ./$(DEPDIR)/iomode.Po
+	-rm -f ./$(DEPDIR)/log.Po
 	-rm -f ./$(DEPDIR)/lrz.Po
-	-rm -f ./$(DEPDIR)/lsyslog.Po
 	-rm -f ./$(DEPDIR)/lsz.Po
 	-rm -f ./$(DEPDIR)/protname.Po
 	-rm -f ./$(DEPDIR)/rbsb.Po
@@ -687,8 +683,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/close_and_update_meta.Po
 	-rm -f ./$(DEPDIR)/crctab.Po
 	-rm -f ./$(DEPDIR)/iomode.Po
+	-rm -f ./$(DEPDIR)/log.Po
 	-rm -f ./$(DEPDIR)/lrz.Po
-	-rm -f ./$(DEPDIR)/lsyslog.Po
 	-rm -f ./$(DEPDIR)/lsz.Po
 	-rm -f ./$(DEPDIR)/protname.Po
 	-rm -f ./$(DEPDIR)/rbsb.Po

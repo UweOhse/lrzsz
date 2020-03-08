@@ -88,8 +88,6 @@ static const char *frametypes[] = {
 			/*  not including psuedo negative entries */
 };
 
-#define badcrc _("Bad CRC")
-/* static char *badcrc = "Bad CRC"; */
 static inline int noxrd7 (void);
 static inline int zdlread (void);
 static int zdlread2 (int);
@@ -166,7 +164,6 @@ zgethex(void)
 	register int c;
 
 	c = zgeth1();
-	VPRINTF(9,("zgethex: %02X", c));
 	return c;
 }
 
@@ -242,7 +239,6 @@ again2:
 			return (c ^ 0100);
 		break;
 	}
-	VPRINTF(2,(_("Bad escape sequence %x"), c));
 	return ERROR;
 }
 
@@ -330,7 +326,6 @@ zsbhdr(int type, char *hdr)
 	register int n;
 	register unsigned short crc;
 
-	VPRINTF(3,("zsbhdr: %s %lx", frametypes[type+FTOFFSET], rclhdr(hdr)));
 	if (type == ZDATA)
 		for (n = Znulls; --n >=0; )
 			xsendline(0);
@@ -386,7 +381,6 @@ zshhdr(int type, char *hdr)
 	char s[30];
 	size_t len;
 
-	VPRINTF(3,("zshhdr: %s %lx", frametypes[(type & 0x7f)+FTOFFSET], rclhdr(hdr)));
 	s[0]=ZPAD;
 	s[1]=ZPAD;
 	s[2]=ZDLE;
@@ -429,8 +423,6 @@ zsdata(const char *buf, size_t length, int frameend)
 {
 	register unsigned short crc;
 
-	VPRINTF(3,("zsdata: %lu %s", (unsigned long) length, 
-		Zendnames[(frameend-ZCRCE)&3]));
 	crc = 0;
 	while (length>0) {
 		zsendline(*buf); crc = updcrc((0377 & *buf), crc);
@@ -453,7 +445,6 @@ zsda32(const char *buf, size_t length, int frameend)
 	int c;
 	unsigned long crc;
 	int i;
-	VPRINTF(3,("zsdat32: %lu %s", (unsigned long)length, Zendnames[(frameend-ZCRCE)&3]));
 
 	crc = 0xFFFFFFFFL;
 	zsendline_s(buf,length);
@@ -570,23 +561,21 @@ crcfoo:
 						goto crcfoo;
 					crc = updcrc(c, crc);
 					if (crc & 0xFFFF) {
-						zperr(badcrc);
+						lrzsz_log(LOG_DEBUG,NULL,"Bad CRC");
 						return ERROR;
 					}
 					*bytes_received = length - (end - buf);
 					COUNT_BLK(*bytes_received);
-					VPRINTF(3,("zrdata: %lu  %s", (unsigned long) (*bytes_received), 
-							Zendnames[(d-GOTCRCE)&3]));
 					return d;
 				}
 			case GOTCAN:
-				zperr(_("Sender Canceled"));
+				lrzsz_log(LOG_DEBUG,NULL,"Sender Canceled");
 				return ZCAN;
 			case TIMEOUT:
-				zperr(_("TIMEOUT"));
+				lrzsz_log(LOG_DEBUG,NULL,"TIMEOUT");
 				return c;
 			default:
-				zperr(_("Bad data subpacket"));
+				lrzsz_log(LOG_DEBUG,NULL,"Bad data subpacket");
 				return c;
 			}
 		}
@@ -630,22 +619,20 @@ crcfoo:
 					goto crcfoo;
 				crc = UPDC32(c, crc);
 				if (crc != 0xDEBB20E3) {
-					zperr(badcrc);
+					lrzsz_log(LOG_DEBUG,NULL,"Bad CRC");
 					return ERROR;
 				}
 				*bytes_received = length - (end - buf);
 				COUNT_BLK(*bytes_received);
-				VPRINTF(3,("zrdat32: %lu %s", (unsigned long) *bytes_received, 
-					Zendnames[(d-GOTCRCE)&3]));
 				return d;
 			case GOTCAN:
-				zperr(_("Sender Canceled"));
+				lrzsz_log(LOG_DEBUG,NULL,"Sender Canceled");
 				return ZCAN;
 			case TIMEOUT:
-				zperr(_("TIMEOUT"));
+				lrzsz_log(LOG_DEBUG,NULL,"TIMEOUT");
 				return c;
 			default:
-				zperr(_("Bad data subpacket"));
+				lrzsz_log(LOG_DEBUG,NULL,"Bad data subpacket");
 				return c;
 			}
 		}
@@ -770,13 +757,10 @@ fifi:
 	case ERROR:
 	case TIMEOUT:
 	case RCDO:
-		zperr(_("Got %s"), frametypes[c+FTOFFSET]);
-	/* **** FALL THRU TO **** */
+		lrzsz_log(LOG_DEBUG, NULL, "Got %s", frametypes[c+FTOFFSET]);
+		break;
 	default:
-		if (c >= -3 && c <= FRTYPES)
-			VPRINTF(3,("zgethdr: %s %lx", frametypes[c+FTOFFSET], (unsigned long) rxpos));
-		else
-			VPRINTF(3,("zgethdr: %d %lx", c, (unsigned long) rxpos));
+		lrzsz_log(LOG_DEBUG, NULL, "Got %d", c);
 	}
 	if (Rxpos)
 		*Rxpos=rxpos;
@@ -808,7 +792,7 @@ zrbhdr(char *hdr)
 		return c;
 	crc = updcrc(c, crc);
 	if (crc & 0xFFFF) {
-		zperr(badcrc); 
+		lrzsz_log(LOG_DEBUG,NULL,"Bad CRC");
 		return ERROR;
 	}
 	protocol = ZM_ZMODEM;
@@ -827,29 +811,20 @@ zrbhdr32(char *hdr)
 		return c;
 	Rxtype = c;
 	crc = 0xFFFFFFFFL; crc = UPDC32(c, crc);
-#ifdef DEBUGZ
-	VPRINTF(3,("zrbhdr32 c=%X  crc=%lX", c, crc)i);
-#endif
 
 	for (n=4; --n >= 0; ++hdr) {
 		if ((c = zdlread()) & ~0377)
 			return c;
 		crc = UPDC32(c, crc);
 		*hdr = c;
-#ifdef DEBUGZ
-		VPRINTF(3,("zrbhdr32 c=%X  crc=%lX", c, crc));
-#endif
 	}
 	for (n=4; --n >= 0;) {
 		if ((c = zdlread()) & ~0377)
 			return c;
 		crc = UPDC32(c, crc);
-#ifdef DEBUGZ
-		VPRINTF(3,("zrbhdr32 c=%X  crc=%lX", c, crc));
-#endif
 	}
 	if (crc != 0xDEBB20E3) {
-		zperr(badcrc);
+		lrzsz_log(LOG_DEBUG,NULL,"Bad CRC");
 		return ERROR;
 	}
 	protocol = ZM_ZMODEM;
@@ -884,7 +859,8 @@ zrhhdr(char *hdr)
 		return c;
 	crc = updcrc(c, crc);
 	if (crc & 0xFFFF) {
-		zperr(badcrc); return ERROR;
+		lrzsz_log(LOG_DEBUG,NULL,"Bad CRC");
+		return ERROR;
 	}
 	switch ( c = READLINE_PF(1)) {
 	case 0215:
@@ -905,7 +881,6 @@ zputhex(int c, char *pos)
 {
 	static char	digits[]	= "0123456789abcdef";
 
-	VPRINTF(9,("zputhex: %02X", c));
 	pos[0]=digits[(c&0xF0)>>4];
 	pos[1]=digits[c&0x0F];
 }
