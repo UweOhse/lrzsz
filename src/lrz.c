@@ -105,10 +105,8 @@ static int wcreceive (int argc, char **argp);
 static int rzfile (struct zm_fileinfo *);
 static void usage (int exitcode, const char *what);
 static void usage1 (int exitcode);
-static void exec2 (const char *s);
 static int closeit (struct zm_fileinfo *);
 static void ackbibi (void);
-static int sys2 (const char *s);
 static void zmputs (const char *s);
 static size_t getfree (void);
 
@@ -1451,7 +1449,6 @@ static int
 tryz(void)
 {
 	register int c, n;
-	register int cmdzack1flg;
 	int zrqinits_received=0;
 	size_t bytes_in_block=0;
 
@@ -1534,37 +1531,11 @@ again:
 			zshhdr(ZACK, Txhdr);
 			goto again;
 		case ZCOMMAND:
-			cmdzack1flg = Rxhdr[ZF0];
 			if (zrdata(secbuf, MAX_BLOCK,&bytes_in_block) == GOTCRCW) {
-				if (Verbose)
-				{
-					vstringf("%s: %s\n", program_name,
-						_("remote command execution requested"));
-					vstringf("%s: %s\n", program_name, secbuf);
-				}
-				if (!allow_remote_commands) 
-				{
-					if (Verbose)
-						vstringf("%s: %s\n", program_name, 
-							_("not executed"));
-					zshhdr(ZCOMPL, Txhdr);
-					lrzsz_syslog(LOG_INFO,NULL,"rexec denied: %s",secbuf);
-					return ZCOMPL;
-				}
-				lrzsz_syslog(LOG_INFO,NULL,"rexec allowed: %s",secbuf);
-				if (cmdzack1flg & ZCACK1)
-					stohdr(0L);
-				else
-					stohdr((size_t)sys2(secbuf));
-				purgeline(0);	/* dump impatient questions */
-				do {
-					zshhdr(ZCOMPL, Txhdr);
-				}
-				while (++errors<20 && zgethdr(Rxhdr,1, NULL, &config) != ZFIN);
-				ackbibi();
-				if (cmdzack1flg & ZCACK1)
-					exec2(secbuf);
-				return ZCOMPL;
+				secbuf[MAX_BLOCK-1]=0;
+				lrzsz_syslog(LOG_WARNING,NULL, "received execution request: %s",
+					secbuf);
+				return ERROR;
 			}
 			zshhdr(ZNAK, Txhdr);
 			goto again;
@@ -2009,31 +1980,6 @@ ackbibi(void)
 			break;
 		}
 	}
-}
-
-/*
- * Strip leading ! if present, do shell escape. 
- */
-static int
-sys2(const char *s)
-{
-	if (*s == '!')
-		++s;
-	return system(s);
-}
-
-/*
- * Strip leading ! if present, do exec.
- */
-static void 
-exec2(const char *s)
-{
-	if (*s == '!')
-		++s;
-	lrzsz_iomode(0,LRZSZ_IOMODE_RESET, &config);
-	execl("/bin/sh", "sh", "-c", s, NULL);
-	zpfatal("execl");
-	exit(1);
 }
 
 /*

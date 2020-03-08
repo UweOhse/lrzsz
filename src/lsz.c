@@ -68,7 +68,6 @@ static int getinsync (struct zm_fileinfo *, int flag);
 static void countem (int argc, char **argv);
 static void chkinvok (const char *s);
 static void usage (int exitcode, const char *what);
-static int zsendcmd (const char *buf, size_t blen);
 static void saybibi (void);
 static int wcsend (int argc, char *argp[]);
 static int wcputsec (char *buf, int sectnum, size_t cseclen);
@@ -132,9 +131,6 @@ char Lztrans;
 char zconv;		/* ZMODEM file conversion request */
 char zmanag;		/* ZMODEM file management request */
 char ztrans;		/* ZMODEM file transport request */
-int command_mode;		/* Send a command, then exit. */
-int Cmdtries = 11;
-int Cmdack1;		/* Rx ACKs command, then do it */
 int Exitcode;
 #if defined(ENABLE_TIMESYNC)
 int enable_timesync=0;
@@ -203,9 +199,6 @@ static struct option const long_options[] =
   {"ascii", no_argument, NULL, 'a'},
   {"binary", no_argument, NULL, 'b'},
   {"bufsize", required_argument, NULL, 'B'},
-  {"cmdtries", required_argument, NULL, 'C'},
-  {"command", required_argument, NULL, 'c'},
-  {"immediate-command", required_argument, NULL, 'i'},
   {"dot-to-slash", no_argument, NULL, 'd'},
   {"full-path", no_argument, NULL, 'f'},
   {"escape", no_argument, NULL, 'e'},
@@ -266,7 +259,6 @@ main(int argc, char **argv)
 	int stdin_files;
 	char **patts;
 	int c;
-	const char *Cmdstr=NULL;		/* Pointer to the command string */
 	unsigned int startup_delay=0;
 	syslog_facility=parse_syslog_facility("UUCP"); // or include syslog.h sys/syslog.h...
 
@@ -292,7 +284,7 @@ main(int argc, char **argv)
 	Rxtimeout = 600;
 
 	while ((c = getopt_long (argc, argv, 
-		"2+48abB:C:c:dfeEghHi:kL:l:m:M:NnOopRrqsSt:TUuvw:XYy",
+		"2+48abB:C:dfeEghHkL:l:m:M:NnOopRrqsSt:TUuvw:XYy",
 		long_options, (int *) 0))!=EOF)
 	{
 		unsigned long int tmp;
@@ -332,19 +324,6 @@ main(int argc, char **argv)
 				buffersize= (size_t) -1;
 			else
 				buffersize=strtol(optarg,NULL,10);
-			break;
-		case 'C': 
-			s_err = xstrtoul (optarg, NULL, 0, &tmp, NULL);
-			Cmdtries = tmp;
-			if (s_err != LONGINT_OK)
-				STRTOL_FATAL_ERROR (optarg, _("command tries"), s_err);
-			break;
-		case 'i':
-			Cmdack1 = ZCACK1;
-			/* **** FALL THROUGH TO **** */
-		case 'c':
-			command_mode = TRUE;
-			Cmdstr = optarg;
 			break;
 		case 'd':
 			++Dottoslash;
@@ -556,12 +535,8 @@ main(int argc, char **argv)
 	npats = argc - optind;
 	patts=&argv[optind];
 
-	if (npats < 1 && !command_mode) 
+	if (npats < 1) 
 		usage(2,_("need at least one file to send"));
-	if (command_mode && Restricted) {
-		printf(_("Can't send command in restricted mode\n"));
-		exit(1);
-	}
 
 	if (config.io.may_use_stderr && !Quiet) {
 		if (Verbose == 0)
@@ -646,8 +621,6 @@ main(int argc, char **argv)
 
 			purgeline(io_mode_fd);
 			stohdr(0L);
-			if (command_mode)
-				Txhdr[ZF0] = ZCOMMAND;
 			zshhdr(ZRQINIT, Txhdr);
 			zrqinits_sent++;
 #if defined(ENABLE_TIMESYNC)
@@ -664,14 +637,7 @@ main(int argc, char **argv)
 	}
 	fflush(stdout);
 
-	if (Cmdstr) {
-		if (getzrxinit()) {
-			Exitcode=0200; canit(STDOUT_FILENO);
-		}
-		else if (zsendcmd(Cmdstr, strlen(Cmdstr)+1)) {
-			Exitcode=0200; canit(STDOUT_FILENO);
-		}
-	} else if (wcsend(npats, patts)==ERROR) {
+	if (wcsend(npats, patts)==ERROR) {
 		Exitcode=0200;
 		canit(STDOUT_FILENO);
 	}
@@ -817,26 +783,6 @@ wcsend (int argc, char *argp[])
 #endif
 	Totsecs = 0;
 	if (Filcnt == 0) {			/* bitch if we couldn't open ANY files */
-#if 0
-	/* i *really* do not like this */
-		if (protocol != ZM_XMODEM) {
-			const char *Cmdstr;		/* Pointer to the command string */
-			command_mode = TRUE;
-			Cmdstr = "echo \"lsz: Can't open any requested files\"";
-			if (getnak ()) {
-				Exitcode = 0200;
-				canit(STDOUT_FILENO);
-			}
-			if (!zmodem_requested)
-				canit(STDOUT_FILENO);
-			else if (zsendcmd (Cmdstr, 1 + strlen (Cmdstr))) {
-				Exitcode = 0200;
-				canit(STDOUT_FILENO);
-			}
-			Exitcode = 1;
-			return OK;
-		}
-#endif
 		canit(STDOUT_FILENO);
 		vstring ("\r\n");
 		vstringf (_ ("Can't open any requested files."));
@@ -1379,14 +1325,11 @@ usage(int exitcode, const char *what)
 "  -a, --ascii                 ASCII transfer (change CR/LF to LF)\n"
 "  -b, --binary                binary transfer\n"
 "  -B, --bufsize N             buffer N bytes (N==auto: buffer whole file)\n"
-"  -c, --command COMMAND       execute remote command COMMAND (Z)\n"
-"  -C, --command-tries N       try N times to execute a command (Z)\n"
 "  -d, --dot-to-slash          change '.' to '/' in pathnames (Y/Z)\n"
 "      --delay-startup N       sleep N seconds before doing anything\n"
 "  -e, --escape                escape all control characters (Z)\n"
 "  -E, --rename                force receiver to rename files it already has\n"
 "  -f, --full-path             send full pathname (Y/Z)\n"
-"  -i, --immediate-command CMD send remote CMD, return immediately (Z)\n"
 "  -h, --help                  print this usage message\n"
 "  -k, --1k                    send 1024 byte packets (X)\n"
 "  -L, --packetlen N           limit subpacket length to N bytes (Z)\n"
@@ -1502,16 +1445,14 @@ getzrxinit(void)
 			 * If input is not a regular file, force ACK's to
 			 *  prevent running beyond the buffer limits
 			 */
-			if ( !command_mode) {
-				fstat(fileno(input_f), &f);
+			fstat(fileno(input_f), &f);
 #if defined(S_ISREG)
-				if (!(S_ISREG(f.st_mode))) {
+			if (!(S_ISREG(f.st_mode))) {
 #else
-				if ((f.st_mode & S_IFMT) != S_IFREG) {
+			if ((f.st_mode & S_IFMT) != S_IFREG) {
 #endif
-					Canseek = -1;
-					/* return ERROR; */
-				}
+				Canseek = -1;
+				/* return ERROR; */
 			}
 			/* Set initial subpacket length */
 			if (blklen < 1024) {	/* Command line override? */
@@ -2122,56 +2063,6 @@ saybibi(void)
 		case ZCAN:
 		case TIMEOUT:
 			return;
-		}
-	}
-}
-
-/* Send command and related info */
-static int 
-zsendcmd(const char *buf, size_t blen)
-{
-	int c;
-	pid_t cmdnum;
-	size_t rxpos;
-
-	cmdnum = getpid();
-	errors = 0;
-	for (;;) {
-		stohdr((size_t) cmdnum);
-		Txhdr[ZF0] = Cmdack1;
-		zsbhdr(ZCOMMAND, Txhdr);
-		ZSDATA(buf, blen, ZCRCW);
-listen:
-		Rxtimeout = 100;		/* Ten second wait for resp. */
-		c = zgethdr(Rxhdr, 1, &rxpos, &config);
-
-		switch (c) {
-		case ZRINIT:
-			goto listen;	/* CAF 8-21-87 */
-		case ERROR:
-		case TIMEOUT:
-			if (++errors > Cmdtries)
-				return ERROR;
-			continue;
-		case ZCAN:
-		case ZABORT:
-		case ZFIN:
-		case ZSKIP:
-		case ZRPOS:
-			return ERROR;
-		default:
-			if (++errors > 20)
-				return ERROR;
-			continue;
-		case ZCOMPL:
-			Exitcode = rxpos;
-			saybibi();
-			return OK;
-		case ZRQINIT:
-			vfile("******** RZ *******");
-			system("rz");
-			vfile("******** SZ *******");
-			goto listen;
 		}
 	}
 }
