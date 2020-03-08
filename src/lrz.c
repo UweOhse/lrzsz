@@ -1376,13 +1376,8 @@ checkpath(const char *name)
 				program_name, name);
 			bibi(-1);
 		}
-		/* restrict pathnames to current tree or uucppublic */
-		if ( strstr(name, "../")
-#ifdef PUBDIR
-		 || (name[0]== '/' && strncmp(name, PUBDIR, 
-		 	strlen(PUBDIR)))
-#endif
-		) {
+		/* restrict pathnames to current directory  */
+		if ( strstr(name, "../")) {
 			canit(STDOUT_FILENO);
 			vstring("\r\n");
 			vstringf(_("%s:\tSecurity Violation"),program_name);

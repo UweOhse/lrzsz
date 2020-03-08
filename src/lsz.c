@@ -808,13 +808,8 @@ wcs(const char *oname, const char *remotename)
 	struct zm_fileinfo zi;
 
 	if (Restricted) {
-		/* restrict pathnames to current tree or uucppublic */
-		if ( strstr(oname, "../")
-#ifdef PUBDIR
-		 || (oname[0]== '/' && strncmp(oname, MK_STRING(PUBDIR),
-		 	strlen(MK_STRING(PUBDIR))))
-#endif
-		) {
+		/* restrict pathnames to current dir */
+		if ( strstr(oname, "../")) {
 			canit(STDOUT_FILENO);
 			vchar('\r');
 			error(1,0,
