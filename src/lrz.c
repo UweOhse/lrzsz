@@ -85,9 +85,6 @@ static int timesync_flag=0;
 static int in_timesync=0;
 #endif
 
-#if defined(F_GETFD) && defined(F_SETFD) && defined(O_SYNC)
-static int o_sync = 0;
-#endif
 static int rzfiles (struct zm_fileinfo *);
 static int tryz (void);
 static void checkpath (const char *name);
@@ -176,8 +173,6 @@ static struct option const long_options[] =
 	{"null", no_argument, NULL, 'D'},
 	{"syslog", optional_argument, NULL , 2},
 	{"delay-startup", required_argument, NULL, 4},
-	{"o-sync", no_argument, NULL, 5},
-	{"o_sync", no_argument, NULL, 5},
 	{NULL,0,NULL,0}
 };
 
@@ -376,13 +371,6 @@ main(int argc, char *argv[])
 			if (s_err != LONGINT_OK)
 				STRTOL_FATAL_ERROR (optarg, _("startup delay"), s_err);
 			break;
-		case 5:
-#if defined(F_GETFD) && defined(F_SETFD) && defined(O_SYNC)
-			o_sync=1;
-#else
-			error(0,0, _("O_SYNC not supported by the kernel"));
-#endif
-			break;
 		default:
 			usage(2,NULL);
 		}
@@ -501,7 +489,6 @@ usage(int exitcode, const char *what)
 "  -m, --min-bps N             stop transmission if BPS below N\n"
 "  -M, --min-bps-time N          for at least N seconds (default: 120)\n"
 "  -O, --disable-timeouts      disable timeout code, wait forever for data\n"
-"      --o-sync                open output file(s) in synchronous write mode\n"
 "  -p, --protect               protect existing files\n"
 "  -q, --quiet                 quiet, no progress reports\n"
 "  -r, --resume                try to resume interrupted file transfer (Z)\n"
@@ -1202,16 +1189,6 @@ buffer_it:
 	if (Topipe == 0) {
 		static char *s=NULL;
 		static size_t last_length=0;
-#if defined(F_GETFD) && defined(F_SETFD) && defined(O_SYNC)
-		if (o_sync) {
-			int oldflags;
-			oldflags = fcntl (fileno(fout), F_GETFD, 0);
-			if (oldflags>=0 && !(oldflags & O_SYNC)) {
-				oldflags|=O_SYNC;
-				fcntl (fileno(fout), F_SETFD, oldflags); /* errors don't matter */
-			}
-		}
-#endif
 
 		if (buffersize==-1 && s) {
 			if (zi->bytes_total>last_length) {
