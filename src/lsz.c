@@ -803,9 +803,6 @@ wcsend (int argc, char *argp[])
 static int
 wcs(const char *oname, const char *remotename)
 {
-#if !defined(S_ISDIR)
-	int c;
-#endif
 	struct stat f;
 	char *name;
 	struct zm_fileinfo zi;
@@ -874,12 +871,7 @@ wcs(const char *oname, const char *remotename)
 	vpos = 0;
 	/* Check for directory or block special files */
 	fstat(fileno(input_f), &f);
-#if defined(S_ISDIR)
 	if (S_ISDIR(f.st_mode) || S_ISBLK(f.st_mode)) {
-#else
-	c = f.st_mode & S_IFMT;
-	if (c == S_IFDIR || c == S_IFBLK) {
-#endif
 		error(0,0, _("is not a file: %s"),name);
 		fclose(input_f);
 		free(name);
@@ -898,11 +890,7 @@ wcs(const char *oname, const char *remotename)
 		zi.fname=name;
 	zi.modtime=f.st_mtime;
 	zi.mode=f.st_mode;
-#if defined(S_ISFIFO)
 	zi.bytes_total= (S_ISFIFO(f.st_mode)) ? DEFBYTL : f.st_size;
-#else
-	zi.bytes_total= c == S_IFIFO ? DEFBYTL : f.st_size;
-#endif
 	zi.bytes_sent=0;
 	zi.bytes_received=0;
 	zi.bytes_skipped=0;
@@ -1403,11 +1391,7 @@ getzrxinit(void)
 
 			/* If using a pipe for testing set lower buf len */
 			fstat(0, &f);
-#if defined(S_ISCHR)
 			if (! (S_ISCHR(f.st_mode))) {
-#else
-			if ((f.st_mode & S_IFMT) != S_IFCHR) {
-#endif
 				Rxbuflen = MAX_BLOCK;
 			}
 			/*
@@ -1415,11 +1399,7 @@ getzrxinit(void)
 			 *  prevent running beyond the buffer limits
 			 */
 			fstat(fileno(input_f), &f);
-#if defined(S_ISREG)
 			if (!(S_ISREG(f.st_mode))) {
-#else
-			if ((f.st_mode & S_IFMT) != S_IFREG) {
-#endif
 				Canseek = -1;
 				/* return ERROR; */
 			}
@@ -2076,13 +2056,10 @@ countem (int argc, char **argv)
 			vstringf ("\nCountem: %03d %s ", argc, *argv);
 		}
 		if (access (*argv, R_OK) >= 0 && stat (*argv, &f) >= 0) {
-#if defined(S_ISDIR)
+			// todo: is reading from character devices really ok?
+			// if yes, then why is sending /dev/sda not ok?
+			// TODO: is sending a unix socket OK? Ups.
 			if (!S_ISDIR(f.st_mode) && !S_ISBLK(f.st_mode)) {
-#else
-			int c;
-			c = f.st_mode & S_IFMT;
-			if (c != S_IFDIR && c != S_IFBLK) {
-#endif
 				++Filesleft;
 				Totalleft += f.st_size;
 			}

@@ -1903,11 +1903,7 @@ closeit(struct zm_fileinfo *zi)
 		utime(Pathname, timep);
 #endif
 	}
-#ifdef S_ISREG
 	if (S_ISREG(zi->mode)) {
-#else
-	if ((zi->mode&S_IFMT) == S_IFREG) {
-#endif
 		/* we must not make this program executable if running 
 		 * under rsh, because the user might have uploaded an
 		 * unrestricted shell.
