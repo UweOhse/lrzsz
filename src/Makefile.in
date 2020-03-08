@@ -113,8 +113,7 @@ am__objects_1 = iomode.$(OBJEXT) baudrate.$(OBJEXT) \
 	check_stderr.$(OBJEXT) utils.$(OBJEXT) \
 	close_and_update_meta.$(OBJEXT) log.$(OBJEXT) canit.$(OBJEXT) \
 	protname.$(OBJEXT) zm.$(OBJEXT) rbsb.$(OBJEXT) \
-	timing.$(OBJEXT) zperr.$(OBJEXT) zreadline.$(OBJEXT) \
-	crctab.$(OBJEXT)
+	timing.$(OBJEXT) zreadline.$(OBJEXT) crctab.$(OBJEXT)
 am_lrz_OBJECTS = lrz.$(OBJEXT) $(am__objects_1)
 lrz_OBJECTS = $(am_lrz_OBJECTS)
 lrz_LDADD = $(LDADD)
@@ -148,7 +147,7 @@ am__depfiles_remade = ./$(DEPDIR)/baudrate.Po ./$(DEPDIR)/canit.Po \
 	./$(DEPDIR)/iomode.Po ./$(DEPDIR)/log.Po ./$(DEPDIR)/lrz.Po \
 	./$(DEPDIR)/lsz.Po ./$(DEPDIR)/protname.Po ./$(DEPDIR)/rbsb.Po \
 	./$(DEPDIR)/timing.Po ./$(DEPDIR)/utils.Po ./$(DEPDIR)/zm.Po \
-	./$(DEPDIR)/zperr.Po ./$(DEPDIR)/zreadline.Po
+	./$(DEPDIR)/zreadline.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -331,7 +330,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-COMMON_SOURCES = iomode.c baudrate.c check_stderr.c utils.c close_and_update_meta.c log.c canit.c protname.c zm.c rbsb.c timing.c zperr.c zreadline.c crctab.c 
+COMMON_SOURCES = iomode.c baudrate.c check_stderr.c utils.c close_and_update_meta.c log.c canit.c protname.c zm.c rbsb.c timing.c zreadline.c crctab.c 
 lrz_SOURCES = lrz.c $(COMMON_SOURCES)
 lsz_SOURCES = lsz.c $(COMMON_SOURCES)
 noinst_HEADERS = timing.h zglobal.h zmodem.h
@@ -453,7 +452,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/timing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zm.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zperr.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zreadline.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -630,7 +628,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/timing.Po
 	-rm -f ./$(DEPDIR)/utils.Po
 	-rm -f ./$(DEPDIR)/zm.Po
-	-rm -f ./$(DEPDIR)/zperr.Po
 	-rm -f ./$(DEPDIR)/zreadline.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -691,7 +688,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/timing.Po
 	-rm -f ./$(DEPDIR)/utils.Po
 	-rm -f ./$(DEPDIR)/zm.Po
-	-rm -f ./$(DEPDIR)/zperr.Po
 	-rm -f ./$(DEPDIR)/zreadline.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic

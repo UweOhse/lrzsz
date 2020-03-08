@@ -582,7 +582,7 @@ crcfoo:
 		*buf++ = c;
 		crc = updcrc(c, crc);
 	}
-	zperr(_("Data subpacket too long"));
+	lrzsz_log(LOG_DEBUG, NULL, "Data subpacket too long");
 	return ERROR;
 }
 
@@ -639,7 +639,7 @@ crcfoo:
 		*buf++ = c;
 		crc = UPDC32(c, crc);
 	}
-	zperr(_("Data subpacket too long"));
+	lrzsz_log(LOG_DEBUG, NULL, "Data subpacket too long");
 	return ERROR;
 }
 
@@ -696,7 +696,7 @@ gotcan:
 	default:
 agn2:
 		if ( --max_garbage == 0) {
-			zperr(_("Garbage count exceeded"));
+			lrzsz_log(LOG_INFO, NULL, "Garbage count exceeded");
 			return(ERROR);
 		}
 		if (eflag && ((c &= 0177) & 0140) && Verbose)

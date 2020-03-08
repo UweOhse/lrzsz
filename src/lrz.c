@@ -495,7 +495,7 @@ wcreceive(int argc, char **argp)
 	if (protocol!=ZM_XMODEM || argc==0) {
 		Crcflg=1;
 		if ( !Quiet)
-			vstringf(_("%s waiting to receive."), program_name);
+			lrzsz_log(LOG_INFO,NULL,"%s waiting to receive.", program_name);
 		if ((c=tryz())!=0) {
 			if (c == ZCOMPL)
 				return OK;
@@ -551,9 +551,7 @@ wcreceive(int argc, char **argp)
 		strcpy(Pathname, *argp);
 		checkpath(Pathname);
 
-		vchar('\n');
-		vstringf(_("%s: ready to receive %s"), program_name, Pathname);
-		vstring("\r\n");
+		lrzsz_log(LOG_INFO,NULL,"%s waiting to receive %s.", program_name, Pathname);
 
 		if ((fout=fopen(Pathname, "w")) == NULL) {
 			lrzsz_log(LOG_ERR,&zi, "cannot open: %s", strerror(errno));
@@ -569,11 +567,6 @@ wcreceive(int argc, char **argp)
 			if (d==0)
 				d=0.5; /* can happen if timing uses time() */
 			bps=(zi.bytes_received-zi.bytes_skipped)/d;
-			if (Verbose) {
-				vstringf(
-					_("\rBytes received: %7ld   BPS:%-6ld                \r\n"),
-					(long) zi.bytes_received, bps);
-			}
 			lrzsz_log(LOG_INFO,&zi, "%ld Bytes, %ld BPS",
 					zi.bytes_received, bps);
 		}
@@ -583,14 +576,15 @@ fubar:
 	lrzsz_log(LOG_INFO,&zi, "got error");
 	canit(STDOUT_FILENO);
 	if (Topipe && fout) {
-		pclose(fout);  return ERROR;
+		pclose(fout);
+		return ERROR;
 	}
 	if (fout)
 		fclose(fout);
 
 	if (Restricted && Pathname) {
 		unlink(Pathname);
-		vstringf(_("\r\n%s: %s removed.\r\n"), program_name, Pathname);
+		lrzsz_log(LOG_INFO,&zi,"removed.");
 	}
 	return ERROR;
 }
@@ -835,8 +829,7 @@ do_crc_check(FILE *f, struct zm_fileinfo *fi, size_t remote_bytes, size_t check_
 			case ZRINIT:
 				return ERROR;
 			case ZCAN:
-				if (Verbose)
-					vstringf(_("got ZCAN"));
+				lrzsz_log(LOG_DEBUG,fi, "got ZCAN");
 				return ERROR;
 				break;
 			case ZCRC:
@@ -869,8 +862,6 @@ procheader(char *name, struct zm_fileinfo *zi)
 			p++;
 			if (!*p) {
 				/* alert - file name ended in with a / */
-				if (Verbose)
-					vstringf(_("file name ends with a /, skipped: %s\n"),name);
 				lrzsz_log(LOG_ERR,zi,"file name ends with a /, skipped");
 				return ERROR;
 			}
@@ -883,10 +874,7 @@ procheader(char *name, struct zm_fileinfo *zi)
 	strcpy(name_static,name);
 	zi->fname=name_static;
 
-	if (Verbose>2) {
-		vstringf(_("zmanag=%d, Lzmanag=%d\n"),zmanag,Lzmanag);
-		vstringf(_("zconv=%d\n"),zconv);
-	}
+	lrzsz_log(LOG_DEBUG,zi, "zmanag=%x, Lzmanag=%x, zconv=%x",zmanag,Lzmanag,zconv);
 
 	/* set default parameters and overrides */
 	openmode = "w";
@@ -1008,11 +996,7 @@ procheader(char *name, struct zm_fileinfo *zi)
 		if (!Pathname)
 			error(1,0,_("out of memory"));
 		sprintf(Pathname, "%s %s", program_name+2, name_static);
-		if (Verbose) {
-			vstringf("%s: %s %s\n",
-				_("Topipe"),
-				Pathname, Thisbinary?"BIN":"ASCII");
-		}
+		lrzsz_log(LOG_DEBUG,zi, "Topipe: %s %s",Pathname, Thisbinary?"BIN":"ASCII");
 		if ((fout=popen(Pathname, "w")) == NULL)
 			return ERROR;
 	} else {
@@ -1026,9 +1010,7 @@ procheader(char *name, struct zm_fileinfo *zi)
 			error(1,0,_("out of memory"));
 		strcpy(Pathname, name_static);
 		if (Verbose) {
-			/* overwrite the "waiting to receive" line */
-			vstring("\r                                                                     \r");
-			vstringf(_("Receiving: %s\n"), name_static);
+			lrzsz_log(LOG_DEBUG,zi,"Receiving: %s\n", name_static);
 		}
 		checkpath(name_static);
 		if (Nflag)
@@ -1227,11 +1209,7 @@ IsAnyLower(const char *s)
 static void
 report(int sct)
 {
-	if (Verbose>1)
-	{
-		vstringf(_("Blocks received: %d"),sct);
-		vchar('\r');
-	}
+	lrzsz_log(LOG_DEBUG,NULL,"Blocks received: %d",sct);
 }
 
 /*
@@ -1282,25 +1260,19 @@ checkpath(const char *name)
 		 * don't overwrite hidden files in restricted mode */
 		if ((Restricted==2 || *name=='.') && fopen(name, "r") != NULL) {
 			canit(STDOUT_FILENO);
-			vstring("\r\n");
-			vstringf(_("%s: %s exists\n"), 
-				program_name, name);
+			lrzsz_log(LOG_WARNING,NULL,"%s exists / is hidden", name);
 			bibi(-1);
 		}
 		/* restrict pathnames to current directory  */
 		if ( strstr(name, "../")) {
 			canit(STDOUT_FILENO);
-			vstring("\r\n");
-			vstringf(_("%s:\tSecurity Violation"),program_name);
-			vstring("\r\n");
+			lrzsz_log(LOG_WARNING,NULL,"%s contains ../", name);
 			bibi(-1);
 		}
 		if (Restricted > 1) {
 			if (name[0]=='.' || strstr(name,"/.")) {
 				canit(STDOUT_FILENO);
-				vstring("\r\n");
-				vstringf(_("%s:\tSecurity Violation"),program_name);
-				vstring("\r\n");
+				lrzsz_log(LOG_WARNING,NULL,"%s: security violation attempted contains ../", name);
 				bibi(-1);
 			}
 		}
@@ -1411,12 +1383,10 @@ again:
 			ackbibi();
 			return ZCOMPL;
 		case ZRINIT:
-			if (Verbose)
-				vstringf(_("got ZRINIT"));
+			lrzsz_log(LOG_DEBUG,NULL,"got ZRINIT");
 			return ERROR;
 		case ZCAN:
-			if (Verbose)
-				vstringf(_("got ZCAN"));
+			lrzsz_log(LOG_DEBUG,NULL,"got ZCAN");
 			return ERROR;
 		}
 	}
@@ -1444,19 +1414,12 @@ rzfiles(struct zm_fileinfo *zi)
 				if (d==0)
 					d=0.5; /* can happen if timing uses time() */
 				bps=(zi->bytes_received-zi->bytes_skipped)/d;
-				if (Verbose > 1) {
-					vstringf(
-						_("\rBytes received: %7ld/%7ld   BPS:%-6ld                \r\n"),
-						(long) zi->bytes_received, (long) zi->bytes_total, bps);
-				}
 				lrzsz_log(LOG_INFO, zi, "%ld Bytes, %ld BPS", (long) zi->bytes_total,bps);
 			}
 			/* FALL THROUGH */
 		case ZSKIP:
 			if (c==ZSKIP)
 			{
-				if (Verbose) 
-					vstringf(_("Skipped"));
 				lrzsz_log(LOG_NOTICE, zi, "skipped");
 			}
 			switch (tryz()) {
@@ -1630,9 +1593,8 @@ nxthdr:
 				zmputs(Attn);  continue;
 			}
 moredata:
-			if ((Verbose>1 || min_bps || stop_time)
-				&& (not_printed > (min_bps ? 3 : 7) 
-					|| zi->bytes_received > last_bps / 2 + last_rxbytes)) {
+			if (not_printed > (min_bps ? 3 : 7) 
+					|| zi->bytes_received > last_bps / 2 + last_rxbytes) {
 				int minleft =  0;
 				int secleft =  0;
 				time_t now;
@@ -1667,13 +1629,12 @@ moredata:
 					return ERROR;
 				}
 				
-				if (Verbose > 1) {
-					vstringf(_("\rBytes received: %7ld/%7ld   BPS:%-6ld ETA %02d:%02d  "),
+				lrzsz_log(LOG_INFO|L_PROGRESS,zi,
+					"Bytes received: %7ld/%7ld   BPS:%-6ld ETA %02d:%02d",
 						(long) zi->bytes_received, (long) zi->bytes_total, 
 						last_bps, minleft, secleft);
-					last_rxbytes=zi->bytes_received;
-					not_printed=0;
-				}
+				last_rxbytes=zi->bytes_received;
+				not_printed=0;
 			} else if (Verbose)
 				not_printed++;
 
@@ -1782,7 +1743,7 @@ closeit(struct zm_fileinfo *zi)
 	ret = close_and_update_meta(fout, Pathname, zi->modtime, mode);
 	if (ret) {
 		int e=errno;
-		zpfatal(_("file close error"));
+		lrzsz_log(LOG_ERR, zi, "file close error");
 		/* this may be any sort of error, including random data corruption */
 		unlink(Pathname);
 		return e;

@@ -324,6 +324,7 @@ long rclhdr (char *hdr);
 
 const char * protname (void);
 
+#define L_PROGRESS  0x10000
 void lrzsz_log(int, struct zm_fileinfo *, const char *, ...);
 void lrzsz_set_syslog_facility(const char *s);
 void lrzsz_set_syslog_severity(const char *s);

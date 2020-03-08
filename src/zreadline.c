@@ -67,39 +67,19 @@ readline_internal(unsigned int timeout)
 			n = 3;
 		else if (n==0)
 			n=1;
-		if (Verbose > 5)
-			vstringf("Calling read: alarm=%u  Readnum=%lu ",
-			  n, (unsigned long) readline_readnum);
 		signal(SIGALRM, zreadline_alarm_handler); 
 #ifdef HAVE_SIGINTERRUPT
 		siginterrupt(SIGALRM,1);
 #endif  
 		alarm(n);
 	}
-	else if (Verbose > 5)
-		vstringf("Calling read: Readnum=%lu ",
-		  (unsigned long)readline_readnum);
 
 	readline_ptr=readline_buffer;
 	readline_left=read(readline_fd, readline_ptr, readline_readnum);
 	if (!no_timeout)
 		alarm(0);
-	if (Verbose > 5) {
-		vstringf("Read returned %d bytes\n", readline_left);
-		if (readline_left==-1)
-			vstringf("errno=%d:%s\n", errno,strerror(errno));
-		if (Verbose > 9 && readline_left>0) {
-			int i,j;
-			j=readline_left > 48 ? 48 : readline_left;
-			vstring("    ");
-			for (i=0;i<j;i++) {
-				if (i%24==0 && i)
-					vstring("\n    ");
-				vstringf("%02x ", readline_ptr[i] & 0377);
-			}
-			vstringf("\n");
-		}
-	}
+	if (readline_left==-1)
+		lrzsz_log(LOG_DEBUG,NULL,"read returned %s",strerror(errno));
 	if (readline_left < 1)
 		return TIMEOUT;
 	--readline_left;

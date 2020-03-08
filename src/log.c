@@ -80,6 +80,11 @@ lrzsz_log(int prio, struct zm_fileinfo *fi, const char *format, ...)
         va_list ap;
 
 	char buf[LRZSZ_LOG_BUF_SIZE];
+	int is_progress=0; // is this some kind of fast repeating process report?
+	if (prio & L_PROGRESS) {
+		is_progress=1;
+		prio=prio^L_PROGRESS;
+	}
 
 	if (-1==prio) {
 		return;
@@ -94,17 +99,17 @@ lrzsz_log(int prio, struct zm_fileinfo *fi, const char *format, ...)
 	if (prio<=lrzsz_locallog_severity) {
 		// <level> filename formatted-message
 		fprintf(stderr,"%s: %s %s\n", severityname(prio), 
-			fi->fname && *fi->fname ? fi->fname : "-",
+			fi && fi->fname && *fi->fname ? fi->fname : "-",
 			buf);
 		fflush(stderr);
 	}
-	if (prio<=lrzsz_syslog_severity) {
+	if (prio<=lrzsz_syslog_severity && !is_progress) {
 		if (!lrzsz_openlog_done) {
 			openlog(program_name, LOG_PID|LOG_NDELAY, lrzsz_syslog_facility);
 			lrzsz_openlog_done=1;
 		}
 		syslog(prio, "[%s] %s %s",username, 
-			fi->fname && *fi->fname ? fi->fname : "-",
+			fi && fi->fname && *fi->fname ? fi->fname : "-",
 			buf);
 	}
 }

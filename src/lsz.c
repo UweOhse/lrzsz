@@ -529,12 +529,7 @@ main(int argc, char **argv)
 		 * + escape overhead (about 4 %), so buffer has to be
 		 * somewhat larger than max_blklen 
 		 */
-		char *s=malloc(max_blklen+1024);
-		if (!s)
-		{
-			zperr(_("out of memory"));
-			exit(1);
-		}
+		char *s=xmalloc(max_blklen+1024);
 		setvbuf(stdout,s,_IOFBF,max_blklen+1024);
 	}
 	blklen=start_blklen;
@@ -653,9 +648,7 @@ wcsend (int argc, char *argp[])
 	Totsecs = 0;
 	if (Filcnt == 0) {			/* bitch if we couldn't open ANY files */
 		canit(STDOUT_FILENO);
-		vstring ("\r\n");
-		vstringf (_ ("Can't open any requested files."));
-		vstring ("\r\n");
+		lrzsz_log(LOG_ERR,NULL, "Can't open any requested files.");
 		return ERROR;
 	}
 	if (zmodem_requested)
@@ -798,9 +791,6 @@ wcs(const char *oname, const char *remotename)
 			d=0.5;
 		bps=zi.bytes_sent/d;
 		vchar('\r');
-		if (Verbose > 1) 
-			vstringf(_("Bytes Sent:%7ld   BPS:%-8ld                        \n"),
-				(long) zi.bytes_sent,bps);
 		lrzsz_log(LOG_INFO, &zi,  "%ld bytes,  %ld bps", (long) zi.bytes_sent,bps);
 	}
 	free(name);
@@ -821,12 +811,11 @@ wctxpn(struct zm_fileinfo *zi)
 	struct stat f;
 
 	if (protocol==ZM_XMODEM) {
-		if (Verbose && *zi->fname && fstat(fileno(input_f), &f)!= -1) {
-			vstringf(_("Sending %s, %ld blocks: "),
-			  zi->fname, (long) (f.st_size>>7));
+		if (*zi->fname && fstat(fileno(input_f), &f)!= -1) {
+			lrzsz_log(LOG_INFO, zi, "Sending %ld blocks: ",
+			  (long) (f.st_size>>7));
 		}
-		vstringf(_("Give your local XMODEM receive command now."));
-		vstring("\r\n");
+		lrzsz_log(LOG_INFO,NULL, "Give your local XMODEM receive command now.");
 		return OK;
 	}
 	if (!zmodem_requested)
@@ -849,8 +838,7 @@ wctxpn(struct zm_fileinfo *zi)
 		sprintf(p, "%lu %lo %o 0 %d %ld", (long) f.st_size, f.st_mtime,
 		  (unsigned int)((no_unixmode) ? 0 : f.st_mode), 
 		  Filesleft, Totalleft);
-	if (Verbose)
-		vstringf(_("Sending: %s\n"),txbuf);
+	lrzsz_log(LOG_INFO,zi,"Sending: %s\n",txbuf);
 	Totalleft -= f.st_size;
 	if (--Filesleft <= 0)
 		Totalleft = 0;
@@ -891,7 +879,7 @@ getnak(void)
 		case TIMEOUT:
 			/* 30 seconds are enough */
 			if (tries==3) {
-				zperr(_("Timeout on pathname"));
+				lrzsz_log(LOG_INFO,NULL,"Timeout on pathname");
 				return TRUE;
 			}
 			/* don't send a second ZRQINIT _directly_ after the
@@ -964,7 +952,7 @@ wctx(struct zm_fileinfo *zi)
 		++attempts;
 	} while ((firstch=(READLINE_PF(Rxtimeout)) != ACK) && attempts < RETRYMAX);
 	if (attempts == RETRYMAX) {
-		zperr(_("No ACK on EOT"));
+		lrzsz_log(LOG_INFO,zi,"No ACK on EOT");
 		return ERROR;
 	}
 	else
@@ -985,9 +973,11 @@ wcputsec(char *buf, int sectnum, size_t cseclen)
 	if (Verbose>1) {
 		vchar('\r');
 		if (protocol==ZM_XMODEM) {
-			vstringf(_("Xmodem sectors/kbytes sent: %3d/%2dk"), Totsecs, Totsecs/8 );
+			lrzsz_log(LOG_DEBUG, NULL, "Xmodem sectors/kbytes sent: %3d/%2dk",
+				Totsecs, Totsecs/8 );
 		} else {
-			vstringf(_("Ymodem sectors/kbytes sent: %3d/%2dk"), Totsecs, Totsecs/8 );
+			lrzsz_log(LOG_DEBUG, NULL, "Ymodem sectors/kbytes sent: %3d/%2dk",
+				Totsecs, Totsecs/8 );
 		}
 	}
 	for (attempts=0; attempts <= RETRYMAX; attempts++) {
@@ -1019,24 +1009,29 @@ gotnak:
 		case CAN:
 			if(Lastrx == CAN) {
 cancan:
-				zperr(_("Cancelled"));  return ERROR;
+				lrzsz_log(LOG_INFO,NULL,"Cancelled");  
+				return ERROR;
 			}
 			break;
 		case TIMEOUT:
-			zperr(_("Timeout on sector ACK")); continue;
+			lrzsz_log(LOG_INFO,NULL,"Timeout on sector ACK");
+			continue;
 		case WANTCRC:
 			if (firstsec)
 				Crcflg = TRUE;
 		case NAK:
-			zperr(_("NAK on sector")); continue;
+			lrzsz_log(LOG_INFO,NULL,"NAK on sector");
+			continue;
 		case ACK: 
 			firstsec=FALSE;
 			Totsecs += (cseclen>>7);
 			return OK;
 		case ERROR:
-			zperr(_("Got burst for sector ACK")); break;
+			lrzsz_log(LOG_DEBUG,NULL,"Got burst for sector ACK"); 
+			break;
 		default:
-			zperr(_("Got %02x for sector ACK"), firstch); break;
+			lrzsz_log(LOG_DEBUG,NULL,"Got %02x for sector ACK", firstch);
+			break;
 		}
 		for (;;) {
 			Lastrx = firstch;
@@ -1048,7 +1043,7 @@ cancan:
 				goto cancan;
 		}
 	}
-	zperr(_("Retry Count Exceeded"));
+	lrzsz_log(LOG_DEBUG,NULL,"Retry Count Exceeded");
 	return ERROR;
 }
 
@@ -1376,13 +1371,9 @@ again:
 		default:
 			continue;
 		case ZRQINIT:  /* remote site is sender! */
-			if (Verbose)
-				vstringf(_("got ZRQINIT"));
 			lrzsz_log(LOG_ERR, zi, "got ZRQINIT - sz talks to sz");
 			return ERROR;
 		case ZCAN:
-			if (Verbose)
-				vstringf(_("got ZCAN"));
 			lrzsz_log(LOG_NOTICE, zi, "got ZCAN - receiver canceled");
 			return ERROR;
 		case TIMEOUT:
@@ -1530,8 +1521,8 @@ zsendfdata (struct zm_fileinfo *zi)
 		blklen = calc_blklen (total_sent);
 		total_sent += blklen + OVERHEAD;
 		if (Verbose > 2 && blklen != old)
-			vstringf (_("blklen now %lu\n"), (unsigned long)blklen);
-			n = zfilbuf (zi);
+			lrzsz_log(LOG_DEBUG,zi,  "blklen now %lu", (unsigned long)blklen);
+		n = zfilbuf (zi);
 		if (zi->eof_seen) {
 			e = ZCRCE;
 			if (Verbose>3)
@@ -1543,7 +1534,7 @@ zsendfdata (struct zm_fileinfo *zi)
 		} else if (bytcnt == Lastsync) {
 			e = ZCRCW;
 			if (Verbose>3)
-				vstringf("e=ZCRCW/bytcnt == Lastsync == %ld", 
+				lrzsz_log(LOG_DEBUG,zi,"e=ZCRCW/bytcnt == Lastsync == %ld", 
 					(unsigned long) Lastsync);
 		} else if (Txwindow && (Txwcnt += n) >= Txwspac) {
 			Txwcnt = 0;
@@ -1571,12 +1562,8 @@ zsendfdata (struct zm_fileinfo *zi)
 					if (last_bps<min_bps) {
 						if (now-low_bps>=min_bps_time) {
 							/* too bad */
-							if (Verbose) {
-								vstringf(_("zsendfdata: bps rate %ld below min %ld"),
-								  last_bps, min_bps);
-								vstring("\r\n");
-							}
-							lrzsz_log(LOG_NOTICE, zi, "bps rate too low: %ld < %ld",
+							lrzsz_log(LOG_NOTICE, zi, 
+								"bps rate too low: %ld < %ld",
 									   last_bps, min_bps);
 							return ERROR;
 						}
@@ -1588,17 +1575,13 @@ zsendfdata (struct zm_fileinfo *zi)
 			}
 			if (stop_time && now>=stop_time) {
 				/* too bad */
-				if (Verbose) {
-					vstring(_("zsendfdata: reached stop time"));
-					vstring("\r\n");
-				}
 				lrzsz_log(LOG_NOTICE, zi, "reached stop time");
 				return ERROR;
 			}
 
 			if (Verbose > 1) {
 				vchar ('\r');
-				vstringf (_("Bytes Sent:%7ld/%7ld   BPS:%-8ld ETA %02d:%02d  "),
+				lrzsz_log(LOG_DEBUG,zi,"Bytes Sent:%7ld/%7ld   BPS:%-8ld ETA %02d:%02d  ",
 					 (long) zi->bytes_sent, (long) zi->bytes_total, 
 					last_bps, minleft, secleft);
 			}
@@ -1738,8 +1721,7 @@ calc_blklen(long total_sent)
 				last_blklen = 32;
 			else if (last_blklen > 512)
 				last_blklen=512;
-			if (Verbose > 3)
-				vstringf(_("calc_blklen: reduced to %d due to error\n"),
+			lrzsz_log(LOG_DEBUG, NULL, "calc_blklen: reduced to %d due to error\n",
 					last_blklen);
 		}
 		last_error_count=error_count;
@@ -1770,20 +1752,16 @@ calc_blklen(long total_sent)
 		d=this_bytes_per_error-last_bytes_per_error;
 	if (d<4)
 	{
-		if (Verbose > 3)
-		{
-			vstringf(_("calc_blklen: returned old value %d due to low bpe diff\n"),
-				last_blklen);
-			vstringf(_("calc_blklen: old %ld, new %ld, d %ld\n"),
-				last_bytes_per_error,this_bytes_per_error,d );
-		}
+		lrzsz_log(LOG_DEBUG,NULL,"calc_blklen: return old value %d due to low bpe diff\n",
+			last_blklen);
+		lrzsz_log(LOG_DEBUG,NULL,"calc_blklen: old %ld, new %ld, d %ld\n",
+			last_bytes_per_error,this_bytes_per_error,d );
 		return last_blklen;
 	}
 	last_bytes_per_error=this_bytes_per_error;
 
 calcit:
-	if (Verbose > 3)
-		vstringf(_("calc_blklen: calc total_bytes=%ld, bpe=%ld, ec=%ld\n"),
+	lrzsz_log(LOG_DEBUG, NULL, "calc_blklen: calc total_bytes=%ld, bpe=%ld, ec=%ld\n",
 			total_bytes,this_bytes_per_error,(long) error_count);
 	for (i=32;i<=max_blklen;i*=2) {
 		long ok; /* some many ok blocks do we need */
@@ -1794,7 +1772,7 @@ calcit:
 		transmitted=total_bytes + ok * OVERHEAD  
 			+ failed * ((long) i+OVERHEAD+OVER_ERR);
 		if (Verbose > 4)
-			vstringf(_("calc_blklen: blklen %d, ok %ld, failed %ld -> %lu\n"),
+			lrzsz_log(LOG_DEBUG, NULL, "calc_blklen: blklen %d, ok %ld, failed %ld -> %lu\n",
 				i,ok,failed,transmitted);
 		if (transmitted < best_bytes || !best_bytes)
 		{
@@ -1805,8 +1783,7 @@ calcit:
 	if (best_size > 2*last_blklen)
 		best_size=2*last_blklen;
 	last_blklen=best_size;
-	if (Verbose > 3)
-		vstringf(_("calc_blklen: returned %d as best\n"),
+	lrzsz_log(LOG_DEBUG,NULL,"calc_blklen: returned %d as best\n",
 			last_blklen);
 	return last_blklen;
 }
@@ -1921,9 +1898,6 @@ countem (int argc, char **argv)
 
 	for (Totalleft = 0, Filesleft = 0; --argc >= 0; ++argv) {
 		f.st_size = -1;
-		if (Verbose > 2) {
-			vstringf ("\nCountem: %03d %s ", argc, *argv);
-		}
 		if (access (*argv, R_OK) >= 0 && stat (*argv, &f) >= 0) {
 			// todo: is reading from character devices really ok?
 			// if yes, then why is sending /dev/sda not ok?
@@ -1936,12 +1910,8 @@ countem (int argc, char **argv)
 			++Filesleft;
 			Totalleft += DEFBYTL;
 		}
-		if (Verbose > 2)
-			vstringf (" %ld", (long) f.st_size);
 	}
-	if (Verbose > 2)
-		vstringf (_("\ncountem: Total %d %ld\n"),
-				 Filesleft, Totalleft);
+	lrzsz_log(LOG_DEBUG,NULL, "Countem: Total %d %ld", Filesleft, Totalleft);
 	calc_blklen (Totalleft);
 }
 
