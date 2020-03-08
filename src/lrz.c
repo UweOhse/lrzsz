@@ -33,10 +33,6 @@
 #include <getopt.h>
 #include <time.h>
 
-#ifdef HAVE_UTIME_H
-#include <utime.h>
-#endif
-
 #include "timing.h"
 #include "long-options.h"
 #include "xstrtoul.h"
@@ -1876,32 +1872,14 @@ static int
 closeit(struct zm_fileinfo *zi)
 {
 	int ret;
+
+	mode_t mode=0600;
+
 	if (Topipe) {
 		if (pclose(fout)) {
 			return errno;
 		}
 		return 0;
-	}
-	ret=fclose(fout);
-	if (ret) {
-		int e=errno;
-		zpfatal(_("file close error"));
-		/* this may be any sort of error, including random data corruption */
-		unlink(Pathname);
-		return e;
-	}
-	if (zi->modtime) {
-#ifdef HAVE_STRUCT_UTIMBUF
-		struct utimbuf timep;
-		timep.actime = time(NULL);
-		timep.modtime = zi->modtime;
-		utime(Pathname, &timep);
-#else
-		time_t timep[2];
-		timep[0] = time(NULL);
-		timep[1] = zi->modtime;
-		utime(Pathname, timep);
-#endif
 	}
 	if (S_ISREG(zi->mode)) {
 		/* we must not make this program executable if running 
@@ -1909,9 +1887,17 @@ closeit(struct zm_fileinfo *zi)
 		 * unrestricted shell.
 		 */
 		if (under_rsh)
-			chmod(Pathname, (00666 & zi->mode));
+			mode = (00666 & zi->mode);
 		else
-			chmod(Pathname, (07777 & zi->mode));
+			mode = (07777 & zi->mode);
+	}
+	ret = close_and_update_meta(fout, Pathname, zi->modtime, mode);
+	if (ret) {
+		int e=errno;
+		zpfatal(_("file close error"));
+		/* this may be any sort of error, including random data corruption */
+		unlink(Pathname);
+		return e;
 	}
 	return 0;
 }

@@ -144,6 +144,7 @@ AC_EGREP_HEADER([struct.*utimbuf], utime.h, AC_DEFINE(HAVE_STRUCT_UTIMBUF))
 
 AC_CHECK_FUNCS(gettimeofday settimeofday tcsendbreak)
 AC_CHECK_FUNCS(memcpy select vprintf)
+AC_CHECK_FUNCS(futimes futimens utime fchmod)
 AC_CHECK_FUNCS(rdchk utime syslog siginterrupt)
 AC_REPLACE_FUNCS(vasprintf)
 

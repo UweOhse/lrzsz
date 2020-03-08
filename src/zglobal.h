@@ -26,6 +26,7 @@
 #include "config.h"
 #include "lrzsz.h"
 #include <sys/types.h>
+#include <stdio.h>
 
 #ifdef __STDC__
 #include <stdarg.h>
@@ -328,6 +329,7 @@ int parse_syslog_facility(const char *s);
 
 void * xmalloc (size_t sz);
 char * xstrdup (char const *str);;
+int close_and_update_meta(FILE *, const char *, time_t, mode_t);
 
 
 #endif

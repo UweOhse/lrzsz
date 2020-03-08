@@ -1,5 +1,5 @@
 bin_PROGRAMS=lrz lsz
-COMMON_SOURCES=iomode.c baudrate.c check_stderr.c utils.c
+COMMON_SOURCES=iomode.c baudrate.c check_stderr.c utils.c close_and_update_meta.c
 lrz_SOURCES=lrz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
 lsz_SOURCES=lsz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
 

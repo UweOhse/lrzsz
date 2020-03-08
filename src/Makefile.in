@@ -110,7 +110,8 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = iomode.$(OBJEXT) baudrate.$(OBJEXT) \
-	check_stderr.$(OBJEXT) utils.$(OBJEXT)
+	check_stderr.$(OBJEXT) utils.$(OBJEXT) \
+	close_and_update_meta.$(OBJEXT)
 am_lrz_OBJECTS = lrz.$(OBJEXT) timing.$(OBJEXT) zperr.$(OBJEXT) \
 	zreadline.$(OBJEXT) crctab.$(OBJEXT) rbsb.$(OBJEXT) \
 	zm.$(OBJEXT) protname.$(OBJEXT) lsyslog.$(OBJEXT) \
@@ -145,7 +146,8 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/baudrate.Po ./$(DEPDIR)/canit.Po \
-	./$(DEPDIR)/check_stderr.Po ./$(DEPDIR)/crctab.Po \
+	./$(DEPDIR)/check_stderr.Po \
+	./$(DEPDIR)/close_and_update_meta.Po ./$(DEPDIR)/crctab.Po \
 	./$(DEPDIR)/iomode.Po ./$(DEPDIR)/lrz.Po \
 	./$(DEPDIR)/lsyslog.Po ./$(DEPDIR)/lsz.Po \
 	./$(DEPDIR)/protname.Po ./$(DEPDIR)/rbsb.Po \
@@ -334,7 +336,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-COMMON_SOURCES = iomode.c baudrate.c check_stderr.c utils.c
+COMMON_SOURCES = iomode.c baudrate.c check_stderr.c utils.c close_and_update_meta.c
 lrz_SOURCES = lrz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
 lsz_SOURCES = lsz.c timing.c zperr.c zreadline.c crctab.c rbsb.c zm.c protname.c lsyslog.c canit.c $(COMMON_SOURCES)
 noinst_HEADERS = timing.h zglobal.h zmodem.h
@@ -445,6 +447,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/baudrate.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/canit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_stderr.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/close_and_update_meta.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crctab.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iomode.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lrz.Po@am__quote@ # am--include-marker
@@ -621,6 +624,7 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/baudrate.Po
 	-rm -f ./$(DEPDIR)/canit.Po
 	-rm -f ./$(DEPDIR)/check_stderr.Po
+	-rm -f ./$(DEPDIR)/close_and_update_meta.Po
 	-rm -f ./$(DEPDIR)/crctab.Po
 	-rm -f ./$(DEPDIR)/iomode.Po
 	-rm -f ./$(DEPDIR)/lrz.Po
@@ -681,6 +685,7 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/baudrate.Po
 	-rm -f ./$(DEPDIR)/canit.Po
 	-rm -f ./$(DEPDIR)/check_stderr.Po
+	-rm -f ./$(DEPDIR)/close_and_update_meta.Po
 	-rm -f ./$(DEPDIR)/crctab.Po
 	-rm -f ./$(DEPDIR)/iomode.Po
 	-rm -f ./$(DEPDIR)/lrz.Po
