@@ -109,7 +109,6 @@ int Quiet=0;		/* overrides logic that would otherwise set verbose */
 int Ascii=0;		/* Add CR's for brain damaged programs */
 int Fullname=0;		/* transmit full pathname */
 int Unlinkafter=0;	/* Unlink file after it is sent */
-int Dottoslash=0;	/* Change foo.bar.baz to foo/bar/baz */
 int firstsec;
 int errcnt=0;		/* number of files unreadable */
 size_t blklen=128;		/* length of transmitted records */
@@ -199,7 +198,6 @@ static struct option const long_options[] =
   {"ascii", no_argument, NULL, 'a'},
   {"binary", no_argument, NULL, 'b'},
   {"bufsize", required_argument, NULL, 'B'},
-  {"dot-to-slash", no_argument, NULL, 'd'},
   {"full-path", no_argument, NULL, 'f'},
   {"escape", no_argument, NULL, 'e'},
   {"rename", no_argument, NULL, 'E'},
@@ -284,7 +282,7 @@ main(int argc, char **argv)
 	Rxtimeout = 600;
 
 	while ((c = getopt_long (argc, argv, 
-		"2+48abB:C:dfeEghHkL:l:m:M:NnOopRrqsSt:TUuvw:XYy",
+		"2+48abB:C:feEghHkL:l:m:M:NnOopRrqsSt:TUuvw:XYy",
 		long_options, (int *) 0))!=EOF)
 	{
 		unsigned long int tmp;
@@ -325,9 +323,6 @@ main(int argc, char **argv)
 			else
 				buffersize=strtol(optarg,NULL,10);
 			break;
-		case 'd':
-			++Dottoslash;
-			/* **** FALL THROUGH TO **** */
 		case 'f': Fullname=TRUE; break;
 		case 'e': Zctlesc = 1; break;
 		case 'E': Lzmanag = ZF1_ZMCHNG; break;
@@ -973,10 +968,7 @@ static int
 wctxpn(struct zm_fileinfo *zi)
 {
 	register char *p, *q;
-	char *name2;
 	struct stat f;
-
-	name2=alloca(PATH_MAX+1);
 
 	if (protocol==ZM_XMODEM) {
 		if (Verbose && *zi->fname && fstat(fileno(input_f), &f)!= -1) {
@@ -993,22 +985,6 @@ wctxpn(struct zm_fileinfo *zi)
 			lrzsz_syslog(LOG_NOTICE, zi, "getnak failed");
 			return ERROR;
 		}
-
-	q = (char *) 0;
-	if (Dottoslash) {		/* change . to / */
-		for (p=zi->fname; *p; ++p) {
-			if (*p == '/')
-				q = p;
-			else if (*p == '.')
-				*(q=p) = '/';
-		}
-		if (q && strlen(++q) > 8) {	/* If name>8 chars */
-			q += 8;			/*   make it .ext */
-			strcpy(name2, q);	/* save excess of name */
-			*q = '.';
-			strcpy(++q, name2);	/* add it back */
-		}
-	}
 
 	for (p=zi->fname, q=txbuf ; *p; )
 		if ((*q++ = *p++) == '/' && !Fullname)
