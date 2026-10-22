@@ -53,7 +53,7 @@ readline_internal(unsigned int timeout)
 	struct timeval *tvp;
 	int rc;
 
-	DPRINTF(DEBUG_READLINE, "Calling read: timeout=%u/10s  readnum=%lu ",
+	DPRINTF(DEBUG_READLINE, "Calling read: timeout=%u/10s  readnum=%zu ",
 	  timeout, readline_readnum);
 
 	if (no_timeout) {
