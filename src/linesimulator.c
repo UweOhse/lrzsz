@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -118,10 +119,10 @@ parse_ranges(const char *s, struct range_list *rl)
 /* RNG: xorshift64                                                    */
 /* ------------------------------------------------------------------ */
 
-static unsigned long
-xorshift64(unsigned long *state)
+static uint64_t
+xorshift64(uint64_t *state)
 {
-    unsigned long x = *state;
+    uint64_t x = *state;
     if (x == 0)
         x = 0x9E3779B97F4A7C15UL;
     x ^= x << 13;
@@ -313,8 +314,8 @@ enum err_type {
 };
 
 struct error_state {
-    unsigned long rng;
-    unsigned long seed;
+    uint64_t rng;
+    uint64_t seed;
     int flip_bits;      /* max bits to flip per event (0=disabled) */
     int drop_bytes;     /* max bytes to drop per event (0=disabled) */
     int garble_bytes;   /* max bytes to garble per event (0=disabled) */
