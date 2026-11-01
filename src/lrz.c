@@ -399,6 +399,8 @@ main(int argc, char *argv[])
 		usage(2,_("garbage on commandline"));
 	if (protocol!=ZM_XMODEM && npats)
 		usage(2, _("garbage on commandline"));
+	if (protocol==ZM_XMODEM && !npats)
+		usage(2, _("need a file name to receive"));
 	if (Fromcu && !Quiet) {
 		if (Verbose == 0)
 			Verbose = 2;
